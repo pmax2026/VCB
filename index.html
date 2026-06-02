@@ -1,144 +1,935 @@
-/**
- * VCB Dashboard Data API
- *
- * Web App endpoint:
- *   GET  → returns JSON with both campaigns' data
- *
- * Deploy:
- *   1. Open https://script.google.com → "New project"
- *   2. Replace Code.gs content with this file
- *   3. Click "Deploy" → "New deployment"
- *   4. Type: "Web app"
- *   5. Execute as: "Me"
- *   6. Who has access: "Anyone"
- *   7. Click "Deploy" → copy the Web App URL
- *   8. Paste the URL into the dashboard when prompted
- *
- * The script runs as you, so the Google Sheet does NOT need to be public.
- */
-
-// ============ GĐHH live source (Google Sheet) ============
-const GDHH_SHEET_ID = '1woCgYjUgv_EYfqDHqaCvMY__Q7eSwZe7YI48CMHGRvw';
-const GDHH_SHEET_NAME = 'FB_Paxy';
-
-// ============ MeGO data (historical — campaign ended 27/05/2026) ============
-// Embedded inline because there is no live source for MeGO.
-const MEGO_DATA = [["2026-04-17","ENGAGEMENT","POST01","Green life1835","Green life",1835,"Tính năng",31558,1924,1580,113,0,239,0],["2026-04-17","ENGAGEMENT","POST01","Green life3550","Green life",3550,"Tính năng",6970,346,305,25,0,55,0],["2026-04-17","ENGAGEMENT","POST01","Metro1835","Metro",1835,"Tính năng",10137,595,529,40,0,70,0],["2026-04-17","ENGAGEMENT","POST02","Green life1835","Green life",1835,"Tính năng",22376,392,355,30,0,31,0],["2026-04-17","ENGAGEMENT","POST02","Green life3550","Green life",3550,"Tính năng",18198,242,199,35,0,38,0],["2026-04-17","ENGAGEMENT","POST02","Metro1835","Metro",1835,"Tính năng",11843,114,102,14,0,11,0],["2026-04-17","ENGAGEMENT","POST03","Green life1835","Green life",1835,"Green life",33655,505,449,63,0,65,0],["2026-04-17","ENGAGEMENT","POST03","Green life3550","Green life",3550,"Green life",23547,407,338,44,0,47,0],["2026-04-17","ENGAGEMENT","POST04","Green life1835","Green life",1835,"Ưu đãi metro",25625,601,524,38,0,60,2],["2026-04-17","ENGAGEMENT","POST04","Green life3550","Green life",3550,"Ưu đãi metro",19532,283,244,33,0,42,0],["2026-04-17","ENGAGEMENT","POST04","Metro1835","Metro",1835,"Ưu đãi metro",10323,299,261,15,0,28,1],["2026-04-17","ENGAGEMENT","POST08","Green life1835","Green life",1835,"Tính năng",23560,237,211,30,0,29,0],["2026-04-17","ENGAGEMENT","POST08","Green life3550","Green life",3550,"Tính năng",19936,145,115,28,0,27,0],["2026-04-17","ENGAGEMENT","POST08","Metro1835","Metro",1835,"Tính năng",12565,89,82,14,0,11,0],["2026-04-17","ENGAGEMENT","POST09","Green life1835","Green life",1835,"Tính năng",15141,245,227,19,0,26,0],["2026-04-17","ENGAGEMENT","POST09","Green life3550","Green life",3550,"Tính năng",25160,234,198,44,0,46,0],["2026-04-17","ENGAGEMENT","POST09","Metro1835","Metro",1835,"Tính năng",11224,102,97,15,0,16,0],["2026-04-17","ENGAGEMENT","POST11","Green life1835","Green life",1835,"Tính năng",9067,418,389,178,28,6,0],["2026-04-17","ENGAGEMENT","POST11","Green life3550","Green life",3550,"Tính năng",10967,434,411,206,54,7,0],["2026-04-17","ENGAGEMENT","POST11","Metro1835","Metro",1835,"Tính năng",26182,1078,1078,355,60,12,0],["2026-04-17","REACH","POST01","Green life1835","Green life",1835,"Tính năng",60546,9610,9574,15,0,27,0],["2026-04-17","REACH","POST01","Green life3550","Green life",3550,"Tính năng",15802,2554,2554,0,0,2,0],["2026-04-17","REACH","POST01","Metro1835","Metro",1835,"Tính năng",21800,3543,3513,2,0,4,0],["2026-04-17","REACH","POST02","Green life1835","Green life",1835,"Tính năng",31825,6510,6495,1,0,1,0],["2026-04-17","REACH","POST02","Green life3550","Green life",3550,"Tính năng",43516,9089,8984,1,0,2,0],["2026-04-17","REACH","POST02","Metro1835","Metro",1835,"Tính năng",22327,4671,4619,3,0,8,0],["2026-04-17","REACH","POST03","Green life1835","Green life",1835,"Green life",63128,13321,13070,8,0,33,0],["2026-04-17","REACH","POST03","Green life3550","Green life",3550,"Green life",39903,8137,8039,2,0,12,0],["2026-04-17","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",55775,19204,19194,6,0,12,1],["2026-04-17","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",18271,4501,4501,0,0,0,0],["2026-04-17","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",23962,5446,5421,0,0,5,0],["2026-04-17","REACH","POST08","Green life1835","Green life",1835,"Tính năng",40698,8198,8001,2,0,7,0],["2026-04-17","REACH","POST08","Green life3550","Green life",3550,"Tính năng",26395,5650,5650,0,0,3,0],["2026-04-17","REACH","POST08","Metro1835","Metro",1835,"Tính năng",31510,6440,6329,6,0,19,0],["2026-04-17","REACH","POST09","Green life1835","Green life",1835,"Tính năng",44561,10249,10249,4,0,19,0],["2026-04-17","REACH","POST09","Green life3550","Green life",3550,"Tính năng",28347,6036,5882,1,0,8,0],["2026-04-17","REACH","POST09","Metro1835","Metro",1835,"Tính năng",25627,5454,5284,6,0,21,0],["2026-04-17","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",64130,4035,3808,2771,1359,4,1],["2026-04-17","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",99234,3401,3256,2671,2097,8,1],["2026-04-17","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",274,72,72,50,14,0,0],["2026-04-17","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",99723,14823,14035,7639,2067,5,0],["2026-04-17","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",156404,5771,5491,4275,3302,8,0],["2026-04-17","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1168,313,313,168,27,1,0],["2026-04-17","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",3,1,1,1,0,0,0],["2026-04-18","ENGAGEMENT","POST01","Green life1835","Green life",1835,"Tính năng",52069,2773,2293,164,0,335,0],["2026-04-18","ENGAGEMENT","POST01","Green life3550","Green life",3550,"Tính năng",7695,426,367,20,0,42,0],["2026-04-18","ENGAGEMENT","POST01","Metro1835","Metro",1835,"Tính năng",15502,910,772,53,0,105,0],["2026-04-18","ENGAGEMENT","POST02","Green life1835","Green life",1835,"Tính năng",42720,959,872,40,0,55,0],["2026-04-18","ENGAGEMENT","POST02","Green life3550","Green life",3550,"Tính năng",55262,692,544,59,0,62,0],["2026-04-18","ENGAGEMENT","POST02","Metro1835","Metro",1835,"Tính năng",18445,424,371,15,0,23,0],["2026-04-18","ENGAGEMENT","POST03","Green life1835","Green life",1835,"Green life",68680,2430,2101,99,0,183,1],["2026-04-18","ENGAGEMENT","POST03","Green life3550","Green life",3550,"Green life",51387,913,788,79,0,97,0],["2026-04-18","ENGAGEMENT","POST04","Green life1835","Green life",1835,"Ưu đãi metro",53304,629,548,56,0,62,0],["2026-04-18","ENGAGEMENT","POST04","Green life3550","Green life",3550,"Ưu đãi metro",42087,395,300,52,0,58,0],["2026-04-18","ENGAGEMENT","POST04","Metro1835","Metro",1835,"Ưu đãi metro",22648,338,293,26,0,28,0],["2026-04-18","ENGAGEMENT","POST08","Green life1835","Green life",1835,"Tính năng",59346,966,838,63,0,79,0],["2026-04-18","ENGAGEMENT","POST08","Green life3550","Green life",3550,"Tính năng",34900,365,277,44,0,44,0],["2026-04-18","ENGAGEMENT","POST08","Metro1835","Metro",1835,"Tính năng",19281,344,303,22,0,23,0],["2026-04-18","ENGAGEMENT","POST09","Green life1835","Green life",1835,"Tính năng",51368,1226,1074,50,0,84,0],["2026-04-18","ENGAGEMENT","POST09","Green life3550","Green life",3550,"Tính năng",50597,910,776,66,0,80,1],["2026-04-18","ENGAGEMENT","POST09","Metro1835","Metro",1835,"Tính năng",19370,540,468,22,0,37,0],["2026-04-18","ENGAGEMENT","POST11","Green life1835","Green life",1835,"Tính năng",176958,16216,15721,8234,1400,137,0],["2026-04-18","ENGAGEMENT","POST11","Green life3550","Green life",3550,"Tính năng",267211,23979,23824,12328,2100,195,0],["2026-04-18","ENGAGEMENT","POST11","Metro1835","Metro",1835,"Tính năng",156134,14135,14082,7022,1208,100,0],["2026-04-18","ENGAGEMENT","POST12","Green life1835","Green life",1835,"Tính năng",23102,1981,1945,687,248,26,0],["2026-04-18","ENGAGEMENT","POST12","Green life3550","Green life",3550,"Tính năng",33142,2853,2796,1265,287,30,0],["2026-04-18","ENGAGEMENT","POST12","Metro1835","Metro",1835,"Tính năng",8265,747,747,279,75,8,0],["2026-04-18","REACH","POST01","Green life1835","Green life",1835,"Tính năng",100570,16991,16513,11,0,29,0],["2026-04-18","REACH","POST01","Green life3550","Green life",3550,"Tính năng",13798,2323,2323,0,0,1,0],["2026-04-18","REACH","POST01","Metro1835","Metro",1835,"Tính năng",26341,4399,4294,1,0,4,0],["2026-04-18","REACH","POST02","Green life1835","Green life",1835,"Tính năng",75318,14221,14221,5,0,10,0],["2026-04-18","REACH","POST02","Green life3550","Green life",3550,"Tính năng",46817,7975,7975,1,0,1,0],["2026-04-18","REACH","POST02","Metro1835","Metro",1835,"Tính năng",31696,5457,5315,0,0,6,0],["2026-04-18","REACH","POST03","Green life1835","Green life",1835,"Green life",95031,16454,16375,10,0,49,1],["2026-04-18","REACH","POST03","Green life3550","Green life",3550,"Green life",48221,8559,8491,3,0,8,0],["2026-04-18","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",78485,14427,14044,6,0,15,1],["2026-04-18","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",30215,5548,5548,0,0,0,0],["2026-04-18","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",39341,7065,6856,2,0,11,0],["2026-04-18","REACH","POST08","Green life1835","Green life",1835,"Tính năng",140677,32521,30919,1,0,8,0],["2026-04-18","REACH","POST08","Green life3550","Green life",3550,"Tính năng",19552,3487,3487,0,0,2,0],["2026-04-18","REACH","POST08","Metro1835","Metro",1835,"Tính năng",25925,4686,4491,1,0,3,0],["2026-04-18","REACH","POST09","Green life1835","Green life",1835,"Tính năng",61159,10328,10181,6,0,22,0],["2026-04-18","REACH","POST09","Green life3550","Green life",3550,"Tính năng",74642,17110,16587,1,0,13,1],["2026-04-18","REACH","POST09","Metro1835","Metro",1835,"Tính năng",26391,4689,4689,2,0,15,0],["2026-04-18","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",53956,2125,1842,1701,1179,5,0],["2026-04-18","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",79524,2021,1487,1856,1720,0,0],["2026-04-18","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",8420,525,504,373,190,0,0],["2026-04-18","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",4000,998,966,567,108,0,0],["2026-04-18","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",6320,373,348,254,162,2,0],["2026-04-18","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",7255,695,676,449,195,0,0],["2026-04-18","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",60489,3201,2815,2198,1302,1,0],["2026-04-18","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",135956,3473,2525,3184,2967,4,0],["2026-04-18","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",14370,523,516,421,326,2,0],["2026-04-18","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",3791,1309,1275,667,98,0,0],["2026-04-18","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1664,356,350,191,39,0,0],["2026-04-18","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",4149,1298,1264,662,110,1,0],["2026-04-19","ENGAGEMENT","POST01","Green life1835","Green life",1835,"Tính năng",46490,3518,2963,150,0,319,0],["2026-04-19","ENGAGEMENT","POST01","Green life3550","Green life",3550,"Tính năng",7060,396,344,25,0,55,0],["2026-04-19","ENGAGEMENT","POST01","Metro1835","Metro",1835,"Tính năng",16265,1342,1164,59,0,125,0],["2026-04-19","ENGAGEMENT","POST02","Green life1835","Green life",1835,"Tính năng",38619,783,623,40,0,54,0],["2026-04-19","ENGAGEMENT","POST02","Green life3550","Green life",3550,"Tính năng",43924,660,439,50,0,53,0],["2026-04-19","ENGAGEMENT","POST02","Metro1835","Metro",1835,"Tính năng",22400,450,344,19,0,22,0],["2026-04-19","ENGAGEMENT","POST03","Green life1835","Green life",1835,"Green life",67034,2871,2572,105,0,180,0],["2026-04-19","ENGAGEMENT","POST03","Green life3550","Green life",3550,"Green life",37248,1002,855,52,0,66,0],["2026-04-19","ENGAGEMENT","POST04","Green life1835","Green life",1835,"Ưu đãi metro",45761,752,625,46,0,44,0],["2026-04-19","ENGAGEMENT","POST04","Green life3550","Green life",3550,"Ưu đãi metro",42263,348,281,53,0,52,0],["2026-04-19","ENGAGEMENT","POST04","Metro1835","Metro",1835,"Ưu đãi metro",17207,345,295,18,0,32,1],["2026-04-19","ENGAGEMENT","POST08","Green life1835","Green life",1835,"Tính năng",46270,1538,1438,48,0,84,0],["2026-04-19","ENGAGEMENT","POST08","Green life3550","Green life",3550,"Tính năng",38918,524,417,51,0,57,0],["2026-04-19","ENGAGEMENT","POST08","Metro1835","Metro",1835,"Tính năng",19325,349,308,16,0,14,0],["2026-04-19","ENGAGEMENT","POST09","Green life1835","Green life",1835,"Tính năng",43426,880,789,45,0,59,0],["2026-04-19","ENGAGEMENT","POST09","Green life3550","Green life",3550,"Tính năng",47745,692,572,54,0,63,0],["2026-04-19","ENGAGEMENT","POST09","Metro1835","Metro",1835,"Tính năng",15652,643,593,15,0,29,0],["2026-04-19","ENGAGEMENT","POST11","Green life1835","Green life",1835,"Tính năng",54167,5344,5344,2706,415,37,0],["2026-04-19","ENGAGEMENT","POST11","Green life3550","Green life",3550,"Tính năng",150118,13662,13607,6849,1146,101,0],["2026-04-19","ENGAGEMENT","POST11","Metro1835","Metro",1835,"Tính năng",35198,3716,3716,1814,293,23,0],["2026-04-19","ENGAGEMENT","POST12","Green life1835","Green life",1835,"Tính năng",21155,1681,1634,618,222,35,0],["2026-04-19","ENGAGEMENT","POST12","Green life3550","Green life",3550,"Tính năng",42478,3924,3765,1763,382,36,0],["2026-04-19","ENGAGEMENT","POST12","Metro1835","Metro",1835,"Tính năng",11679,1000,974,388,113,23,0],["2026-04-19","REACH","POST01","Green life1835","Green life",1835,"Tính năng",46699,7224,7151,8,0,18,0],["2026-04-19","REACH","POST01","Green life1835","Green life",1835,"Tính năng",168,39,39,0,0,0,0],["2026-04-19","REACH","POST01","Green life3550","Green life",3550,"Tính năng",3739,569,559,1,0,3,0],["2026-04-19","REACH","POST01","Green life3550","Green life",3550,"Tính năng",144,30,30,0,0,0,0],["2026-04-19","REACH","POST01","Metro1835","Metro",1835,"Tính năng",8887,1391,1391,1,0,5,0],["2026-04-19","REACH","POST01","Metro1835","Metro",1835,"Tính năng",96,21,20,0,0,0,0],["2026-04-19","REACH","POST01","Green life1835","Green life",1835,"Tính năng",231,55,54,0,0,0,0],["2026-04-19","REACH","POST01","Green life3550","Green life",3550,"Tính năng",161,37,37,0,0,0,0],["2026-04-19","REACH","POST01","Metro1835","Metro",1835,"Tính năng",293,52,52,0,0,0,0],["2026-04-19","REACH","POST02","Green life1835","Green life",1835,"Tính năng",15508,2615,2565,0,0,0,0],["2026-04-19","REACH","POST02","Green life1835","Green life",1835,"Tính năng",4151,2984,2973,0,0,0,0],["2026-04-19","REACH","POST02","Green life3550","Green life",3550,"Tính năng",7946,1847,1823,0,0,0,0],["2026-04-19","REACH","POST02","Green life3550","Green life",3550,"Tính năng",4241,2939,2938,0,0,0,0],["2026-04-19","REACH","POST02","Metro1835","Metro",1835,"Tính năng",28028,5860,5860,1,0,4,0],["2026-04-19","REACH","POST02","Metro1835","Metro",1835,"Tính năng",4902,2940,2940,0,0,3,0],["2026-04-19","REACH","POST02","Green life1835","Green life",1835,"Tính năng",12558,5488,5304,0,0,1,0],["2026-04-19","REACH","POST02","Green life3550","Green life",3550,"Tính năng",14765,6619,6292,0,0,0,0],["2026-04-19","REACH","POST02","Metro1835","Metro",1835,"Tính năng",10819,4673,4577,0,0,1,0],["2026-04-19","REACH","POST03","Green life1835","Green life",1835,"Green life",39106,6255,5970,6,0,20,0],["2026-04-19","REACH","POST03","Green life1835","Green life",1835,"Green life",5183,2773,2770,0,0,2,0],["2026-04-19","REACH","POST03","Green life3550","Green life",3550,"Green life",19120,3568,3546,1,0,6,0],["2026-04-19","REACH","POST03","Green life3550","Green life",3550,"Green life",4070,2093,2038,0,0,0,0],["2026-04-19","REACH","POST03","Green life1835","Green life",1835,"Green life",13081,5773,5403,0,0,3,0],["2026-04-19","REACH","POST03","Green life3550","Green life",3550,"Green life",13794,6311,6041,0,0,1,0],["2026-04-19","REACH","POST03","Metro1835","Metro",1835,"Green life",22456,8399,7873,0,0,0,0],["2026-04-19","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",39015,9741,9688,5,0,8,4],["2026-04-19","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",6916,3389,3361,0,0,0,0],["2026-04-19","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",660,134,131,0,0,1,0],["2026-04-19","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",4399,3093,3055,0,0,0,0],["2026-04-19","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",6153,1691,1688,1,0,1,1],["2026-04-19","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",4873,2838,2634,2,0,2,2],["2026-04-19","REACH","POST08","Green life1835","Green life",1835,"Tính năng",29554,5827,5759,2,0,4,0],["2026-04-19","REACH","POST08","Green life1835","Green life",1835,"Tính năng",4343,2882,2781,0,0,0,0],["2026-04-19","REACH","POST08","Green life3550","Green life",3550,"Tính năng",8530,1981,1897,1,0,1,0],["2026-04-19","REACH","POST08","Green life3550","Green life",3550,"Tính năng",4266,2862,2862,0,0,0,0],["2026-04-19","REACH","POST08","Metro1835","Metro",1835,"Tính năng",17207,3529,3502,2,0,6,0],["2026-04-19","REACH","POST08","Metro1835","Metro",1835,"Tính năng",4554,2791,2715,0,0,0,0],["2026-04-19","REACH","POST09","Green life1835","Green life",1835,"Tính năng",15081,2518,2496,3,0,6,0],["2026-04-19","REACH","POST09","Green life1835","Green life",1835,"Tính năng",13092,11164,10515,1,0,0,0],["2026-04-19","REACH","POST09","Green life3550","Green life",3550,"Tính năng",6538,1085,1076,0,0,1,0],["2026-04-19","REACH","POST09","Green life3550","Green life",3550,"Tính năng",22800,19395,18952,0,0,1,0],["2026-04-19","REACH","POST09","Metro1835","Metro",1835,"Tính năng",16266,3337,3333,0,0,3,0],["2026-04-19","REACH","POST09","Metro1835","Metro",1835,"Tính năng",3390,2876,2787,0,0,0,0],["2026-04-19","REACH","POST09","Green life1835","Green life",1835,"Tính năng",12760,5595,5520,0,0,1,0],["2026-04-19","REACH","POST09","Green life3550","Green life",3550,"Tính năng",13363,5737,5447,0,0,0,0],["2026-04-19","REACH","POST09","Metro1835","Metro",1835,"Tính năng",8194,3371,3326,0,0,0,0],["2026-04-19","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",28953,909,736,773,598,2,0],["2026-04-19","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",50840,1155,829,1069,1005,2,0],["2026-04-19","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",8085,318,295,252,173,0,0],["2026-04-19","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",3153,845,829,505,96,1,0],["2026-04-19","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",361,72,71,46,14,0,0],["2026-04-19","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",3150,795,769,499,93,0,0],["2026-04-19","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",998,271,271,157,32,0,0],["2026-04-19","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",26272,1004,953,803,692,6,0],["2026-04-19","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",31922,1277,1141,990,845,8,0],["2026-04-19","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",11530,583,547,405,256,0,0],["2026-04-19","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",65021,1925,1648,1644,1428,2,0],["2026-04-19","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",11839,434,396,338,271,3,0],["2026-04-19","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",3396,1363,1322,693,95,1,0],["2026-04-19","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",409,108,106,67,14,0,0],["2026-04-19","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",3051,1147,1138,582,82,1,0],["2026-04-19","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1274,399,393,214,33,0,0],["2026-04-19","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1483,317,299,198,39,1,0],["2026-04-19","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",2899,412,411,220,79,2,0],["2026-04-20","ENGAGEMENT","POST01","Green life1835","Green life",1835,"Tính năng",41737,3274,2937,130,0,244,0],["2026-04-20","ENGAGEMENT","POST01","Green life3550","Green life",3550,"Tính năng",7814,371,344,20,0,38,0],["2026-04-20","ENGAGEMENT","POST01","Metro1835","Metro",1835,"Tính năng",16349,1253,1154,46,0,99,0],["2026-04-20","ENGAGEMENT","POST02","Green life1835","Green life",1835,"Tính năng",45275,1086,826,43,0,65,0],["2026-04-20","ENGAGEMENT","POST02","Green life3550","Green life",3550,"Tính năng",35014,756,516,28,0,35,0],["2026-04-20","ENGAGEMENT","POST02","Metro1835","Metro",1835,"Tính năng",18507,508,406,16,0,21,0],["2026-04-20","ENGAGEMENT","POST03","Green life1835","Green life",1835,"Green life",73573,3351,3074,125,0,215,0],["2026-04-20","ENGAGEMENT","POST03","Green life3550","Green life",3550,"Green life",28502,731,640,62,0,74,0],["2026-04-20","ENGAGEMENT","POST04","Green life1835","Green life",1835,"Ưu đãi metro",49531,1114,1003,60,0,83,2],["2026-04-20","ENGAGEMENT","POST04","Green life3550","Green life",3550,"Ưu đãi metro",30093,474,355,39,0,42,0],["2026-04-20","ENGAGEMENT","POST04","Metro1835","Metro",1835,"Ưu đãi metro",18558,635,515,19,0,44,1],["2026-04-20","ENGAGEMENT","POST08","Green life1835","Green life",1835,"Tính năng",40784,792,713,44,0,61,0],["2026-04-20","ENGAGEMENT","POST08","Green life3550","Green life",3550,"Tính năng",39803,411,331,54,0,55,0],["2026-04-20","ENGAGEMENT","POST08","Metro1835","Metro",1835,"Tính năng",15242,225,198,15,0,14,0],["2026-04-20","ENGAGEMENT","POST09","Green life1835","Green life",1835,"Tính năng",39903,430,367,40,0,39,0],["2026-04-20","ENGAGEMENT","POST09","Green life3550","Green life",3550,"Tính năng",45822,411,321,57,0,54,0],["2026-04-20","ENGAGEMENT","POST09","Metro1835","Metro",1835,"Tính năng",15982,229,200,15,0,17,0],["2026-04-20","ENGAGEMENT","POST12","Green life1835","Green life",1835,"Tính năng",18969,1534,1493,541,191,26,0],["2026-04-20","ENGAGEMENT","POST12","Green life3550","Green life",3550,"Tính năng",38117,3566,3505,1570,305,26,0],["2026-04-20","ENGAGEMENT","POST12","Metro1835","Metro",1835,"Tính năng",16518,1420,1408,478,154,18,0],["2026-04-20","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1096,156,155,1,0,0,0],["2026-04-20","REACH","POST01","Green life3550","Green life",3550,"Tính năng",21,3,3,0,0,0,0],["2026-04-20","REACH","POST01","Metro1835","Metro",1835,"Tính năng",34,8,8,0,0,0,0],["2026-04-20","REACH","POST01","Green life1835","Green life",1835,"Tính năng",12147,2534,2449,8,1,9,0],["2026-04-20","REACH","POST01","Green life3550","Green life",3550,"Tính năng",2230,541,525,2,0,3,0],["2026-04-20","REACH","POST01","Metro1835","Metro",1835,"Tính năng",65623,12423,12226,15,0,35,0],["2026-04-20","REACH","POST02","Green life1835","Green life",1835,"Tính năng",1401,531,522,0,0,0,0],["2026-04-20","REACH","POST02","Green life3550","Green life",3550,"Tính năng",41385,14111,13892,0,0,0,0],["2026-04-20","REACH","POST02","Metro1835","Metro",1835,"Tính năng",1272,473,473,0,0,1,0],["2026-04-20","REACH","POST02","Green life1835","Green life",1835,"Tính năng",9907,3243,3064,0,0,0,0],["2026-04-20","REACH","POST02","Green life3550","Green life",3550,"Tính năng",2452,727,702,0,0,0,0],["2026-04-20","REACH","POST02","Metro1835","Metro",1835,"Tính năng",5796,1860,1791,0,0,0,0],["2026-04-20","REACH","POST03","Green life1835","Green life",1835,"Green life",4837,1231,1194,2,0,4,0],["2026-04-20","REACH","POST03","Green life3550","Green life",3550,"Green life",2484,639,639,0,0,0,0],["2026-04-20","REACH","POST03","Green life1835","Green life",1835,"Green life",9015,2954,2844,0,0,1,0],["2026-04-20","REACH","POST03","Green life3550","Green life",3550,"Green life",2910,869,832,0,0,1,0],["2026-04-20","REACH","POST03","Metro1835","Metro",1835,"Green life",983,301,301,0,0,0,0],["2026-04-20","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",49831,14653,14184,4,0,8,4],["2026-04-20","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",1549,458,450,0,0,0,0],["2026-04-20","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",1715,484,484,0,0,2,0],["2026-04-20","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",1436,469,469,0,0,0,0],["2026-04-20","REACH","POST08","Green life1835","Green life",1835,"Tính năng",4211,912,912,0,0,0,0],["2026-04-20","REACH","POST08","Green life3550","Green life",3550,"Tính năng",49265,15867,15324,0,0,3,0],["2026-04-20","REACH","POST08","Metro1835","Metro",1835,"Tính năng",10376,2172,2094,5,0,10,0],["2026-04-20","REACH","POST09","Green life1835","Green life",1835,"Tính năng",31458,10130,10130,3,0,3,0],["2026-04-20","REACH","POST09","Green life3550","Green life",3550,"Tính năng",8410,3540,3540,0,0,1,0],["2026-04-20","REACH","POST09","Metro1835","Metro",1835,"Tính năng",1135,660,660,0,0,0,0],["2026-04-20","REACH","POST09","Green life1835","Green life",1835,"Tính năng",1045,319,312,0,0,0,0],["2026-04-20","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1159,319,309,0,0,0,0],["2026-04-20","REACH","POST09","Metro1835","Metro",1835,"Tính năng",892,283,283,0,0,0,0],["2026-04-20","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",1249,330,328,220,39,0,0],["2026-04-20","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",1335,257,249,160,39,0,0],["2026-04-20","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",920,276,276,173,34,0,0],["2026-04-20","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",1881,386,377,250,53,0,0],["2026-04-20","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",132134,6062,5722,4281,3527,26,0],["2026-04-20","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",26893,1189,1098,876,701,4,0],["2026-04-20","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1679,485,474,264,50,0,0],["2026-04-20","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1167,272,262,149,32,0,0],["2026-04-20","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1386,435,418,239,38,0,0],["2026-04-20","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1822,686,671,334,44,0,0],["2026-04-20","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1217,287,280,184,36,0,0],["2026-04-20","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",2305,215,213,136,54,1,0],["2026-04-21","ENGAGEMENT","POST01","Green life1835","Green life",1835,"Tính năng",19857,1017,937,61,0,107,0],["2026-04-21","ENGAGEMENT","POST01","Green life3550","Green life",3550,"Tính năng",4753,151,131,10,0,18,0],["2026-04-21","ENGAGEMENT","POST01","Metro1835","Metro",1835,"Tính năng",4418,298,287,15,0,32,0],["2026-04-21","ENGAGEMENT","POST02","Green life1835","Green life",1835,"Tính năng",23851,711,646,24,0,46,0],["2026-04-21","ENGAGEMENT","POST02","Green life3550","Green life",3550,"Tính năng",30718,563,444,41,0,47,0],["2026-04-21","ENGAGEMENT","POST02","Metro1835","Metro",1835,"Tính năng",9406,271,235,10,0,12,0],["2026-04-21","ENGAGEMENT","POST03","Green life1835","Green life",1835,"Green life",42764,2080,1940,65,0,140,0],["2026-04-21","ENGAGEMENT","POST03","Green life3550","Green life",3550,"Green life",17088,565,509,30,0,41,0],["2026-04-21","ENGAGEMENT","POST04","Green life1835","Green life",1835,"Ưu đãi metro",21375,776,686,26,0,50,3],["2026-04-21","ENGAGEMENT","POST04","Green life3550","Green life",3550,"Ưu đãi metro",24394,450,379,29,0,39,0],["2026-04-21","ENGAGEMENT","POST04","Metro1835","Metro",1835,"Ưu đãi metro",14107,535,494,15,0,38,0],["2026-04-21","ENGAGEMENT","POST08","Green life1835","Green life",1835,"Tính năng",24256,790,704,29,0,42,0],["2026-04-21","ENGAGEMENT","POST08","Green life3550","Green life",3550,"Tính năng",23291,385,341,25,0,29,0],["2026-04-21","ENGAGEMENT","POST08","Metro1835","Metro",1835,"Tính năng",9631,232,207,13,0,18,0],["2026-04-21","ENGAGEMENT","POST09","Green life1835","Green life",1835,"Tính năng",19609,367,319,20,0,30,0],["2026-04-21","ENGAGEMENT","POST09","Green life3550","Green life",3550,"Tính năng",28968,437,372,34,0,45,0],["2026-04-21","ENGAGEMENT","POST09","Metro1835","Metro",1835,"Tính năng",8980,200,178,12,0,18,0],["2026-04-21","ENGAGEMENT","POST12","Green life1835","Green life",1835,"Tính năng",9839,640,631,286,88,23,1],["2026-04-21","ENGAGEMENT","POST12","Green life3550","Green life",3550,"Tính năng",21908,1667,1650,782,154,15,0],["2026-04-21","ENGAGEMENT","POST12","Metro1835","Metro",1835,"Tính năng",9471,698,671,265,75,8,0],["2026-04-21","REACH","POST01","Green life1835","Green life",1835,"Tính năng",238,59,59,0,0,1,0],["2026-04-21","REACH","POST01","Green life3550","Green life",3550,"Tính năng",8,2,2,0,0,0,0],["2026-04-21","REACH","POST01","Metro1835","Metro",1835,"Tính năng",47,12,12,0,0,0,0],["2026-04-21","REACH","POST01","Green life1835","Green life",1835,"Tính năng",56,11,11,0,0,0,0],["2026-04-21","REACH","POST01","Green life3550","Green life",3550,"Tính năng",4,3,2,0,0,0,0],["2026-04-21","REACH","POST01","Metro1835","Metro",1835,"Tính năng",30,8,8,0,0,0,0],["2026-04-21","REACH","POST01","Green life1835","Green life",1835,"Tính năng",688,153,149,0,0,2,0],["2026-04-21","REACH","POST01","Green life3550","Green life",3550,"Tính năng",502,136,136,0,0,0,0],["2026-04-21","REACH","POST01","Metro1835","Metro",1835,"Tính năng",1059,119,119,0,0,0,0],["2026-04-21","REACH","POST02","Green life1835","Green life",1835,"Tính năng",19521,4797,4756,2,0,7,0],["2026-04-21","REACH","POST02","Green life3550","Green life",3550,"Tính năng",24347,4785,4608,1,0,6,0],["2026-04-21","REACH","POST02","Metro1835","Metro",1835,"Tính năng",8759,1911,1911,2,0,8,0],["2026-04-21","REACH","POST02","Green life1835","Green life",1835,"Tính năng",7993,2205,2156,0,0,2,0],["2026-04-21","REACH","POST02","Green life3550","Green life",3550,"Tính năng",3266,921,917,0,0,0,0],["2026-04-21","REACH","POST02","Metro1835","Metro",1835,"Tính năng",1606,474,468,0,0,0,0],["2026-04-21","REACH","POST03","Green life1835","Green life",1835,"Green life",9278,2748,2695,0,0,2,0],["2026-04-21","REACH","POST03","Green life3550","Green life",3550,"Green life",13556,3183,3178,0,0,0,0],["2026-04-21","REACH","POST03","Green life1835","Green life",1835,"Green life",4744,1349,1282,0,0,0,0],["2026-04-21","REACH","POST03","Green life3550","Green life",3550,"Green life",4891,1392,1358,0,0,0,0],["2026-04-21","REACH","POST03","Metro1835","Metro",1835,"Green life",1857,562,562,0,0,0,0],["2026-04-21","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",22763,5136,5087,2,0,3,2],["2026-04-21","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",6338,1523,1507,1,0,3,1],["2026-04-21","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",2838,733,724,0,0,3,0],["2026-04-21","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",2002,521,521,0,0,2,0],["2026-04-21","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",6477,2114,2020,0,0,0,0],["2026-04-21","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",6850,2183,2062,1,0,3,0],["2026-04-21","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",45808,15708,14873,3,0,8,3],["2026-04-21","REACH","POST07","Green life1835","Green life",1835,"Tính năng",20286,6593,6593,0,0,2,0],["2026-04-21","REACH","POST07","Green life3550","Green life",3550,"Tính năng",11225,4983,4844,1,0,2,0],["2026-04-21","REACH","POST07","Metro1835","Metro",1835,"Tính năng",13179,4023,3836,0,0,1,0],["2026-04-21","REACH","POST08","Green life1835","Green life",1835,"Tính năng",16853,4303,4291,1,0,2,0],["2026-04-21","REACH","POST08","Green life3550","Green life",3550,"Tính năng",9265,1827,1818,1,0,1,0],["2026-04-21","REACH","POST08","Metro1835","Metro",1835,"Tính năng",1983,405,405,0,0,0,0],["2026-04-21","REACH","POST08","Green life1835","Green life",1835,"Tính năng",70949,28746,27932,4,0,4,0],["2026-04-21","REACH","POST08","Green life3550","Green life",3550,"Tính năng",7041,2322,2138,1,0,2,0],["2026-04-21","REACH","POST08","Metro1835","Metro",1835,"Tính năng",4821,1504,1472,0,0,0,0],["2026-04-21","REACH","POST09","Green life1835","Green life",1835,"Tính năng",15787,3445,3361,3,0,8,0],["2026-04-21","REACH","POST09","Green life3550","Green life",3550,"Tính năng",5370,1261,1245,0,0,1,0],["2026-04-21","REACH","POST09","Metro1835","Metro",1835,"Tính năng",9672,2470,2429,0,0,1,0],["2026-04-21","REACH","POST09","Green life1835","Green life",1835,"Tính năng",2556,718,709,0,0,0,0],["2026-04-21","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1110,309,302,0,0,0,0],["2026-04-21","REACH","POST09","Metro1835","Metro",1835,"Tính năng",6440,1916,1875,0,0,0,0],["2026-04-21","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",1802590,40885,17197,38804,37379,50,0],["2026-04-21","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",3165110,72873,29312,68870,66664,73,1],["2026-04-21","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",22030,714,600,619,474,2,0],["2026-04-21","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",1111,283,272,186,33,1,0],["2026-04-21","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",19200,763,727,596,508,3,0],["2026-04-21","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",15062,666,651,515,399,3,0],["2026-04-21","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",612746,14779,7794,13548,12783,17,0],["2026-04-21","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1341537,32417,17682,29770,28389,27,0],["2026-04-21","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",749929,17347,8040,16282,15606,16,0],["2026-04-21","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1034,403,390,200,26,0,0],["2026-04-21","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1541,304,292,187,39,0,0],["2026-04-21","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",2397,570,570,330,61,0,0],["2026-04-22","REACH","POST01","Green life1835","Green life",1835,"Tính năng",629,122,119,2,0,3,0],["2026-04-22","REACH","POST01","Green life3550","Green life",3550,"Tính năng",45,9,8,0,0,0,0],["2026-04-22","REACH","POST01","Metro1835","Metro",1835,"Tính năng",214,45,45,0,0,1,0],["2026-04-22","REACH","POST01","Green life1835","Green life",1835,"Tính năng",368,33,31,0,0,0,0],["2026-04-22","REACH","POST01","Green life3550","Green life",3550,"Tính năng",87,25,23,2,0,2,0],["2026-04-22","REACH","POST01","Metro1835","Metro",1835,"Tính năng",102,18,17,1,0,1,0],["2026-04-22","REACH","POST02","Green life1835","Green life",1835,"Tính năng",12062,2225,2212,0,0,4,0],["2026-04-22","REACH","POST02","Green life3550","Green life",3550,"Tính năng",33511,5804,5646,1,0,4,0],["2026-04-22","REACH","POST02","Metro1835","Metro",1835,"Tính năng",13026,2872,2848,1,0,1,0],["2026-04-22","REACH","POST02","Green life1835","Green life",1835,"Tính năng",8002,2073,2008,0,0,0,0],["2026-04-22","REACH","POST02","Green life3550","Green life",3550,"Tính năng",11875,2894,2802,0,0,1,0],["2026-04-22","REACH","POST02","Metro1835","Metro",1835,"Tính năng",20276,5255,5255,0,0,1,0],["2026-04-22","REACH","POST03","Green life1835","Green life",1835,"Green life",13014,3458,3380,2,0,4,0],["2026-04-22","REACH","POST03","Green life3550","Green life",3550,"Green life",10165,2043,2028,0,0,3,0],["2026-04-22","REACH","POST03","Green life1835","Green life",1835,"Green life",26811,6409,6321,1,0,3,0],["2026-04-22","REACH","POST03","Green life3550","Green life",3550,"Green life",12479,3060,3034,1,0,0,0],["2026-04-22","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",40451,7219,7057,4,0,15,0],["2026-04-22","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",16418,3104,3009,6,0,13,1],["2026-04-22","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",17569,3748,3683,1,0,3,0],["2026-04-22","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",18082,3899,3824,2,0,11,0],["2026-04-22","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",7400,1849,1794,1,0,1,1],["2026-04-22","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",220892,63466,59271,0,0,9,0],["2026-04-22","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",80827,23349,21964,3,0,8,2],["2026-04-22","REACH","POST06","Green life1835","Green life",1835,"Green life",42819,12539,12017,0,0,2,0],["2026-04-22","REACH","POST06","Green life3550","Green life",3550,"Green life",38479,11586,11189,0,0,2,0],["2026-04-22","REACH","POST07","Green life1835","Green life",1835,"Tính năng",15837,4038,3879,2,0,3,0],["2026-04-22","REACH","POST07","Green life3550","Green life",3550,"Tính năng",91856,25865,25171,12,8,0,0],["2026-04-22","REACH","POST07","Metro1835","Metro",1835,"Tính năng",4305,1108,1049,0,0,0,0],["2026-04-22","REACH","POST08","Green life1835","Green life",1835,"Tính năng",23760,4896,4784,1,0,6,0],["2026-04-22","REACH","POST08","Green life3550","Green life",3550,"Tính năng",44305,7863,7694,3,0,15,0],["2026-04-22","REACH","POST08","Metro1835","Metro",1835,"Tính năng",35466,6159,6083,9,0,14,0],["2026-04-22","REACH","POST08","Green life1835","Green life",1835,"Tính năng",214738,60021,57245,1,0,7,0],["2026-04-22","REACH","POST08","Green life3550","Green life",3550,"Tính năng",179929,51047,47568,1,0,4,0],["2026-04-22","REACH","POST08","Metro1835","Metro",1835,"Tính năng",14148,3617,3504,1,0,2,0],["2026-04-22","REACH","POST09","Green life1835","Green life",1835,"Tính năng",56321,10098,10098,18,0,58,0],["2026-04-22","REACH","POST09","Green life3550","Green life",3550,"Tính năng",33964,8170,8170,2,0,9,0],["2026-04-22","REACH","POST09","Metro1835","Metro",1835,"Tính năng",16831,3717,3643,2,0,1,0],["2026-04-22","REACH","POST09","Green life1835","Green life",1835,"Tính năng",6840,1832,1787,1,0,1,0],["2026-04-22","REACH","POST09","Green life3550","Green life",3550,"Tính năng",2250,562,535,0,0,1,0],["2026-04-22","REACH","POST09","Metro1835","Metro",1835,"Tính năng",1155,309,298,0,0,0,0],["2026-04-22","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",47,1,1,1,1,0,0],["2026-04-22","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",39,1,1,1,1,0,0],["2026-04-22","VIEW","POST11","Green life1835","Green life",1835,"Tính năng",2143,429,429,289,57,0,0],["2026-04-22","VIEW","POST11","Green life3550","Green life",3550,"Tính năng",4070,170,169,122,105,1,0],["2026-04-22","VIEW","POST11","Metro1835","Metro",1835,"Tính năng",4698,238,232,177,118,2,0],["2026-04-22","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",517681,13382,8177,11827,11013,19,0],["2026-04-22","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",2203307,60095,38202,51699,47049,87,1],["2026-04-22","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",525054,13050,7333,11860,11105,20,0],["2026-04-22","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",599,247,243,133,12,0,0],["2026-04-22","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",1792,302,293,169,45,0,0],["2026-04-22","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1886,391,391,231,49,0,0],["2026-04-23","REACH","POST01","Green life1835","Green life",1835,"Tính năng",245,50,48,0,0,0,0],["2026-04-23","REACH","POST01","Green life3550","Green life",3550,"Tính năng",12,4,4,0,0,0,0],["2026-04-23","REACH","POST01","Metro1835","Metro",1835,"Tính năng",75,17,17,0,0,0,0],["2026-04-23","REACH","POST01","Green life1835","Green life",1835,"Tính năng",42,12,12,0,0,0,0],["2026-04-23","REACH","POST01","Green life3550","Green life",3550,"Tính năng",15,5,5,0,0,0,0],["2026-04-23","REACH","POST01","Metro1835","Metro",1835,"Tính năng",33,10,10,0,0,0,0],["2026-04-23","REACH","POST02","Green life1835","Green life",1835,"Tính năng",9835,2586,2579,0,0,1,0],["2026-04-23","REACH","POST02","Green life3550","Green life",3550,"Tính năng",8823,2536,2468,0,0,0,0],["2026-04-23","REACH","POST02","Metro1835","Metro",1835,"Tính năng",20345,5423,5340,0,0,0,0],["2026-04-23","REACH","POST02","Green life1835","Green life",1835,"Tính năng",18011,4821,4748,0,0,0,0],["2026-04-23","REACH","POST02","Green life3550","Green life",3550,"Tính năng",13884,3844,3588,0,0,0,0],["2026-04-23","REACH","POST02","Metro1835","Metro",1835,"Tính năng",21292,5710,5565,0,0,1,0],["2026-04-23","REACH","POST03","Green life1835","Green life",1835,"Green life",21216,4999,4839,1,0,5,0],["2026-04-23","REACH","POST03","Green life3550","Green life",3550,"Green life",11770,3021,2838,0,0,2,0],["2026-04-23","REACH","POST03","Green life1835","Green life",1835,"Green life",30007,7601,7520,1,0,1,0],["2026-04-23","REACH","POST03","Green life3550","Green life",3550,"Green life",16442,4392,4168,0,0,0,0],["2026-04-23","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",16750,3829,3779,2,0,2,2],["2026-04-23","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",10246,2926,2926,0,0,0,0],["2026-04-23","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",8623,2615,2546,0,0,1,0],["2026-04-23","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",12653,3453,3453,2,0,2,2],["2026-04-23","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",30416,7964,7580,1,0,0,0],["2026-04-23","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",18924,5347,5095,0,0,1,0],["2026-04-23","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",12023,3511,3490,0,0,3,0],["2026-04-23","REACH","POST06","Green life1835","Green life",1835,"Green life",14677,4062,3748,0,0,1,0],["2026-04-23","REACH","POST06","Green life3550","Green life",3550,"Green life",5507,1656,1550,0,0,1,0],["2026-04-23","REACH","POST07","Green life1835","Green life",1835,"Tính năng",17862,4811,4723,1,0,0,0],["2026-04-23","REACH","POST07","Green life3550","Green life",3550,"Tính năng",17567,4919,4728,0,0,0,0],["2026-04-23","REACH","POST07","Metro1835","Metro",1835,"Tính năng",17698,4662,4494,0,0,1,0],["2026-04-23","REACH","POST08","Green life1835","Green life",1835,"Tính năng",26003,6409,6323,0,0,1,0],["2026-04-23","REACH","POST08","Green life3550","Green life",3550,"Tính năng",8389,2403,2403,0,0,0,0],["2026-04-23","REACH","POST08","Metro1835","Metro",1835,"Tính năng",7842,2396,2277,0,0,0,0],["2026-04-23","REACH","POST08","Green life1835","Green life",1835,"Tính năng",28933,7748,7452,1,0,0,0],["2026-04-23","REACH","POST08","Green life3550","Green life",3550,"Tính năng",17588,4635,4481,0,0,0,0],["2026-04-23","REACH","POST08","Metro1835","Metro",1835,"Tính năng",17368,4671,4488,0,0,3,0],["2026-04-23","REACH","POST09","Green life1835","Green life",1835,"Tính năng",21097,5214,5105,0,0,1,0],["2026-04-23","REACH","POST09","Green life3550","Green life",3550,"Tính năng",9245,2717,2717,0,0,0,0],["2026-04-23","REACH","POST09","Metro1835","Metro",1835,"Tính năng",15308,3946,3946,0,0,1,0],["2026-04-23","REACH","POST09","Green life1835","Green life",1835,"Tính năng",9120,2472,2425,0,0,0,0],["2026-04-23","REACH","POST09","Green life3550","Green life",3550,"Tính năng",8202,2280,2188,0,0,0,0],["2026-04-23","REACH","POST09","Metro1835","Metro",1835,"Tính năng",5279,1550,1518,0,0,0,0],["2026-04-23","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",369,26,26,18,9,0,0],["2026-04-23","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",445,19,19,11,8,0,0],["2026-04-23","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",126,20,20,11,0,0,0],["2026-04-23","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",736,208,206,131,17,0,0],["2026-04-23","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",59,12,12,9,2,1,0],["2026-04-23","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",93,15,15,8,2,0,0],["2026-04-24","REACH","POST01","Green life1835","Green life",1835,"Tính năng",133,37,37,1,0,2,0],["2026-04-24","REACH","POST01","Green life3550","Green life",3550,"Tính năng",66,7,7,0,0,0,0],["2026-04-24","REACH","POST01","Metro1835","Metro",1835,"Tính năng",26,7,7,0,0,0,0],["2026-04-24","REACH","POST01","Green life1835","Green life",1835,"Tính năng",19,6,6,0,0,0,0],["2026-04-24","REACH","POST01","Green life3550","Green life",3550,"Tính năng",16,6,6,0,0,0,0],["2026-04-24","REACH","POST01","Metro1835","Metro",1835,"Tính năng",17,5,3,0,0,0,0],["2026-04-24","REACH","POST02","Green life1835","Green life",1835,"Tính năng",14951,3702,3586,0,0,0,0],["2026-04-24","REACH","POST02","Green life3550","Green life",3550,"Tính năng",1249,328,317,0,0,0,0],["2026-04-24","REACH","POST02","Metro1835","Metro",1835,"Tính năng",5084,1442,1402,0,0,0,0],["2026-04-24","REACH","POST02","Green life1835","Green life",1835,"Tính năng",333094,107416,97864,2,0,8,0],["2026-04-24","REACH","POST02","Green life3550","Green life",3550,"Tính năng",50098,17007,15686,0,0,3,0],["2026-04-24","REACH","POST02","Metro1835","Metro",1835,"Tính năng",915,267,262,0,0,0,0],["2026-04-24","REACH","POST03","Green life1835","Green life",1835,"Green life",3585,838,834,0,0,0,0],["2026-04-24","REACH","POST03","Green life3550","Green life",3550,"Green life",2191,519,519,0,0,0,0],["2026-04-24","REACH","POST03","Green life1835","Green life",1835,"Green life",991,290,286,0,0,0,0],["2026-04-24","REACH","POST03","Green life3550","Green life",3550,"Green life",92032,30553,29618,0,0,6,0],["2026-04-24","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",11776,2994,2994,1,0,1,1],["2026-04-24","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",1062,275,275,0,0,0,0],["2026-04-24","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",1446,392,389,0,0,0,0],["2026-04-24","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",5089,1485,1485,4,0,4,2],["2026-04-24","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",37719,12793,12455,0,0,4,0],["2026-04-24","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",970,282,282,0,0,0,0],["2026-04-24","REACH","POST06","Green life1835","Green life",1835,"Green life",1203,354,349,1,0,1,0],["2026-04-24","REACH","POST06","Green life3550","Green life",3550,"Green life",82272,25877,24843,0,0,6,0],["2026-04-24","REACH","POST07","Green life1835","Green life",1835,"Tính năng",1013,291,286,1,1,0,0],["2026-04-24","REACH","POST07","Green life3550","Green life",3550,"Tính năng",864,245,242,1,0,0,0],["2026-04-24","REACH","POST07","Metro1835","Metro",1835,"Tính năng",850,248,246,0,0,0,0],["2026-04-24","REACH","POST08","Green life1835","Green life",1835,"Tính năng",15132,3792,3773,0,0,1,0],["2026-04-24","REACH","POST08","Green life3550","Green life",3550,"Tính năng",1019,269,263,0,0,0,0],["2026-04-24","REACH","POST08","Metro1835","Metro",1835,"Tính năng",1189,316,316,0,0,0,0],["2026-04-24","REACH","POST08","Green life1835","Green life",1835,"Tính năng",962,286,283,0,0,0,0],["2026-04-24","REACH","POST08","Green life3550","Green life",3550,"Tính năng",852,239,237,0,0,0,0],["2026-04-24","REACH","POST08","Metro1835","Metro",1835,"Tính năng",1047,313,305,0,0,0,0],["2026-04-24","REACH","POST09","Green life1835","Green life",1835,"Tính năng",2899,679,671,0,0,0,0],["2026-04-24","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1785,422,396,0,0,0,0],["2026-04-24","REACH","POST09","Metro1835","Metro",1835,"Tính năng",9207,2160,2106,1,0,1,0],["2026-04-24","REACH","POST09","Green life1835","Green life",1835,"Tính năng",917,276,268,0,0,1,0],["2026-04-24","REACH","POST09","Green life3550","Green life",3550,"Tính năng",26912,8818,8474,0,0,2,0],["2026-04-24","REACH","POST09","Metro1835","Metro",1835,"Tính năng",1928,572,553,0,0,0,0],["2026-04-25","REACH","POST01","Green life1835","Green life",1835,"Tính năng",113,33,33,0,0,0,0],["2026-04-25","REACH","POST01","Green life3550","Green life",3550,"Tính năng",8,3,3,0,0,0,0],["2026-04-25","REACH","POST01","Metro1835","Metro",1835,"Tính năng",16,4,3,0,0,0,0],["2026-04-25","REACH","POST01","Green life1835","Green life",1835,"Tính năng",68,20,18,0,0,0,0],["2026-04-25","REACH","POST01","Green life3550","Green life",3550,"Tính năng",13,5,5,0,0,0,0],["2026-04-25","REACH","POST01","Metro1835","Metro",1835,"Tính năng",13,5,5,0,0,0,0],["2026-04-25","REACH","POST02","Green life1835","Green life",1835,"Tính năng",29470,7926,7885,0,0,4,0],["2026-04-25","REACH","POST02","Green life3550","Green life",3550,"Tính năng",1096,268,264,0,0,0,0],["2026-04-25","REACH","POST02","Metro1835","Metro",1835,"Tính năng",11664,4132,4132,0,0,1,0],["2026-04-25","REACH","POST02","Green life1835","Green life",1835,"Tính năng",1159280,345835,308188,2,0,47,0],["2026-04-25","REACH","POST02","Green life3550","Green life",3550,"Tính năng",1042,311,311,0,0,0,0],["2026-04-25","REACH","POST02","Metro1835","Metro",1835,"Tính năng",11804,3453,3427,0,0,1,0],["2026-04-25","REACH","POST03","Green life1835","Green life",1835,"Green life",29564,7783,7671,0,0,0,0],["2026-04-25","REACH","POST03","Green life3550","Green life",3550,"Green life",10675,3545,3523,0,0,1,0],["2026-04-25","REACH","POST03","Green life1835","Green life",1835,"Green life",15699,4571,4338,0,0,1,0],["2026-04-25","REACH","POST03","Green life3550","Green life",3550,"Green life",918,266,263,0,0,0,0],["2026-04-25","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",25017,7011,6850,0,0,1,0],["2026-04-25","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",8779,3100,3067,0,0,1,0],["2026-04-25","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",10918,3693,3693,0,0,0,0],["2026-04-25","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",20171,5910,5471,0,0,0,0],["2026-04-25","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",1066,295,287,0,0,0,0],["2026-04-25","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",989,295,291,0,0,0,0],["2026-04-25","REACH","POST06","Green life1835","Green life",1835,"Green life",41160,12475,12364,0,0,0,0],["2026-04-25","REACH","POST06","Green life3550","Green life",3550,"Green life",268870,86560,78367,0,0,17,0],["2026-04-25","REACH","POST07","Green life1835","Green life",1835,"Tính năng",16007,4646,4453,1,1,2,0],["2026-04-25","REACH","POST07","Green life3550","Green life",3550,"Tính năng",70109,21121,19934,1,0,4,0],["2026-04-25","REACH","POST07","Metro1835","Metro",1835,"Tính năng",23648,6992,6465,3,2,0,0],["2026-04-25","REACH","POST08","Green life1835","Green life",1835,"Tính năng",18018,4939,4929,0,0,0,0],["2026-04-25","REACH","POST08","Green life3550","Green life",3550,"Tính năng",8850,2847,2847,0,0,0,0],["2026-04-25","REACH","POST08","Metro1835","Metro",1835,"Tính năng",14747,4148,4148,0,0,0,0],["2026-04-25","REACH","POST08","Green life1835","Green life",1835,"Tính năng",10863,3168,3045,0,0,1,0],["2026-04-25","REACH","POST08","Green life3550","Green life",3550,"Tính năng",8962,2593,2504,0,0,0,0],["2026-04-25","REACH","POST08","Metro1835","Metro",1835,"Tính năng",22942,6949,6866,0,0,0,0],["2026-04-25","REACH","POST09","Green life1835","Green life",1835,"Tính năng",28887,7970,7944,0,0,2,0],["2026-04-25","REACH","POST09","Green life3550","Green life",3550,"Tính năng",8838,3195,3132,0,0,0,0],["2026-04-25","REACH","POST09","Metro1835","Metro",1835,"Tính năng",7995,3118,3111,0,0,0,0],["2026-04-25","REACH","POST09","Green life1835","Green life",1835,"Tính năng",40503,12164,11832,0,0,2,0],["2026-04-25","REACH","POST09","Green life3550","Green life",3550,"Tính năng",249788,75336,67064,0,0,15,0],["2026-04-25","REACH","POST09","Metro1835","Metro",1835,"Tính năng",25024,7672,7399,1,0,1,0],["2026-04-25","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",2351,773,773,373,52,1,0],["2026-04-25","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",6930,438,417,254,182,1,0],["2026-04-25","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1185,322,314,163,27,0,0],["2026-04-25","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",3194,1075,1046,519,81,1,0],["2026-04-25","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",2166,292,262,184,64,0,0],["2026-04-25","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",3188,1013,1013,487,84,1,0],["2026-04-26","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1251,318,318,0,0,1,0],["2026-04-26","REACH","POST01","Green life3550","Green life",3550,"Tính năng",37,12,12,0,0,0,0],["2026-04-26","REACH","POST01","Metro1835","Metro",1835,"Tính năng",38,10,9,0,0,0,0],["2026-04-26","REACH","POST01","Green life1835","Green life",1835,"Tính năng",507,151,143,0,0,0,0],["2026-04-26","REACH","POST01","Green life3550","Green life",3550,"Tính năng",183,52,49,0,0,0,0],["2026-04-26","REACH","POST01","Metro1835","Metro",1835,"Tính năng",12,3,3,0,0,0,0],["2026-04-26","REACH","POST02","Green life1835","Green life",1835,"Tính năng",6616,1650,1641,0,0,0,0],["2026-04-26","REACH","POST02","Green life3550","Green life",3550,"Tính năng",37729,9559,9411,1,0,3,0],["2026-04-26","REACH","POST02","Metro1835","Metro",1835,"Tính năng",2147,562,559,0,0,0,0],["2026-04-26","REACH","POST02","Green life1835","Green life",1835,"Tính năng",3632,1074,1073,0,0,1,0],["2026-04-26","REACH","POST02","Green life3550","Green life",3550,"Tính năng",914,244,242,0,0,0,0],["2026-04-26","REACH","POST02","Metro1835","Metro",1835,"Tính năng",964,272,271,0,0,0,0],["2026-04-26","REACH","POST03","Green life1835","Green life",1835,"Green life",3007,773,769,0,0,0,0],["2026-04-26","REACH","POST03","Green life3550","Green life",3550,"Green life",940,246,245,0,0,0,0],["2026-04-26","REACH","POST03","Green life1835","Green life",1835,"Green life",1412,409,403,0,0,0,0],["2026-04-26","REACH","POST03","Green life3550","Green life",3550,"Green life",1133,251,251,0,0,0,0],["2026-04-26","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",2560,680,680,0,0,0,0],["2026-04-26","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",950,247,242,0,0,0,0],["2026-04-26","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",1383,355,348,0,0,0,0],["2026-04-26","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",1220,353,353,0,0,1,0],["2026-04-26","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",1009,266,261,0,0,0,0],["2026-04-26","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",55628,15414,14425,3,0,4,3],["2026-04-26","REACH","POST06","Green life1835","Green life",1835,"Green life",919,274,270,0,0,0,0],["2026-04-26","REACH","POST06","Green life3550","Green life",3550,"Green life",126,35,32,0,0,0,0],["2026-04-26","REACH","POST07","Green life1835","Green life",1835,"Tính năng",1189,341,341,4,2,0,0],["2026-04-26","REACH","POST07","Green life3550","Green life",3550,"Tính năng",951,258,257,2,2,0,0],["2026-04-26","REACH","POST07","Metro1835","Metro",1835,"Tính năng",1014,285,281,0,0,0,0],["2026-04-26","REACH","POST08","Green life1835","Green life",1835,"Tính năng",1446,376,373,0,0,0,0],["2026-04-26","REACH","POST08","Green life3550","Green life",3550,"Tính năng",1012,256,256,0,0,0,0],["2026-04-26","REACH","POST08","Metro1835","Metro",1835,"Tính năng",1141,285,285,0,0,0,0],["2026-04-26","REACH","POST08","Green life1835","Green life",1835,"Tính năng",1009,287,287,0,0,0,0],["2026-04-26","REACH","POST08","Green life3550","Green life",3550,"Tính năng",872,238,230,0,0,0,0],["2026-04-26","REACH","POST08","Metro1835","Metro",1835,"Tính năng",916,256,253,0,0,0,0],["2026-04-26","REACH","POST09","Green life1835","Green life",1835,"Tính năng",3085,795,775,0,0,0,0],["2026-04-26","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1053,252,250,0,0,0,0],["2026-04-26","REACH","POST09","Metro1835","Metro",1835,"Tính năng",1114,286,286,0,0,0,0],["2026-04-26","REACH","POST09","Green life1835","Green life",1835,"Tính năng",996,294,284,0,0,0,0],["2026-04-26","REACH","POST09","Green life3550","Green life",3550,"Tính năng",988,273,273,0,0,0,0],["2026-04-26","REACH","POST09","Metro1835","Metro",1835,"Tính năng",856,242,242,0,0,0,0],["2026-04-26","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",5723,1436,1341,717,143,1,0],["2026-04-26","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",4254,200,187,133,101,0,0],["2026-04-26","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",6789,1499,1349,786,165,1,0],["2026-04-26","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",8953,2279,2179,1057,205,1,0],["2026-04-26","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",22640,1021,828,741,531,2,0],["2026-04-26","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",7813,1620,1575,837,177,2,0],["2026-04-27","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1032,262,260,0,0,0,0],["2026-04-27","REACH","POST01","Green life3550","Green life",3550,"Tính năng",105,28,28,0,0,0,0],["2026-04-27","REACH","POST01","Metro1835","Metro",1835,"Tính năng",29,7,7,1,0,0,0],["2026-04-27","REACH","POST01","Green life1835","Green life",1835,"Tính năng",854,257,233,0,0,0,0],["2026-04-27","REACH","POST01","Green life3550","Green life",3550,"Tính năng",113,32,28,0,0,0,0],["2026-04-27","REACH","POST01","Metro1835","Metro",1835,"Tính năng",46,13,12,1,0,0,0],["2026-04-27","REACH","POST02","Green life1835","Green life",1835,"Tính năng",43170,11317,11110,0,0,2,0],["2026-04-27","REACH","POST02","Green life3550","Green life",3550,"Tính năng",1017,248,247,0,0,0,0],["2026-04-27","REACH","POST02","Metro1835","Metro",1835,"Tính năng",1590,407,407,0,0,0,0],["2026-04-27","REACH","POST02","Green life1835","Green life",1835,"Tính năng",3163,960,960,0,0,0,0],["2026-04-27","REACH","POST02","Green life3550","Green life",3550,"Tính năng",31702,8854,8733,0,0,0,0],["2026-04-27","REACH","POST02","Metro1835","Metro",1835,"Tính năng",1046,291,291,0,0,0,0],["2026-04-27","REACH","POST03","Green life1835","Green life",1835,"Green life",4110,1034,1034,0,0,0,0],["2026-04-27","REACH","POST03","Green life3550","Green life",3550,"Green life",18715,4689,4604,0,0,0,0],["2026-04-27","REACH","POST03","Green life1835","Green life",1835,"Green life",26762,7425,7011,0,0,1,0],["2026-04-27","REACH","POST03","Green life3550","Green life",3550,"Green life",938,254,253,0,0,0,0],["2026-04-27","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",3360,853,853,0,0,0,0],["2026-04-27","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",964,241,240,0,0,0,0],["2026-04-27","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",12157,3065,3065,2,0,2,2],["2026-04-27","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",27124,7756,7286,3,0,2,2],["2026-04-27","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",892,252,244,0,0,0,0],["2026-04-27","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",1138,303,298,0,0,0,0],["2026-04-27","REACH","POST06","Green life1835","Green life",1835,"Green life",1048,298,294,0,0,1,0],["2026-04-27","REACH","POST06","Green life3550","Green life",3550,"Green life",9102,2649,2593,0,0,0,0],["2026-04-27","REACH","POST07","Green life1835","Green life",1835,"Tính năng",1145,322,322,2,1,0,0],["2026-04-27","REACH","POST07","Green life3550","Green life",3550,"Tính năng",16865,4561,4296,2,2,0,0],["2026-04-27","REACH","POST07","Metro1835","Metro",1835,"Tính năng",1755,491,491,0,0,0,0],["2026-04-27","REACH","POST08","Green life1835","Green life",1835,"Tính năng",3773,969,969,0,0,0,0],["2026-04-27","REACH","POST08","Green life3550","Green life",3550,"Tính năng",23132,5824,5665,0,0,2,0],["2026-04-27","REACH","POST08","Metro1835","Metro",1835,"Tính năng",23604,5906,5906,0,0,1,0],["2026-04-27","REACH","POST08","Green life1835","Green life",1835,"Tính năng",1314,375,368,0,0,0,0],["2026-04-27","REACH","POST08","Green life3550","Green life",3550,"Tính năng",9162,2519,2390,1,0,1,0],["2026-04-27","REACH","POST08","Metro1835","Metro",1835,"Tính năng",929,264,255,0,0,0,0],["2026-04-27","REACH","POST09","Green life1835","Green life",1835,"Tính năng",2817,682,682,0,0,1,0],["2026-04-27","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1175,270,268,0,0,1,0],["2026-04-27","REACH","POST09","Metro1835","Metro",1835,"Tính năng",26567,6597,6565,0,0,1,0],["2026-04-27","REACH","POST09","Green life1835","Green life",1835,"Tính năng",1041,309,309,0,0,0,0],["2026-04-27","REACH","POST09","Green life3550","Green life",3550,"Tính năng",929,264,263,0,0,0,0],["2026-04-27","REACH","POST09","Metro1835","Metro",1835,"Tính năng",97927,27192,24266,1,0,7,0],["2026-04-27","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",375,102,100,57,9,0,0],["2026-04-27","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",493,20,17,18,10,0,0],["2026-04-27","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1301,341,335,188,27,0,0],["2026-04-27","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",11031,2033,1910,1028,280,2,0],["2026-04-27","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",177,11,11,4,2,0,0],["2026-04-27","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",7863,1103,1003,580,180,0,0],["2026-04-28","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1014,279,279,1,0,2,0],["2026-04-28","REACH","POST01","Green life3550","Green life",3550,"Tính năng",65,19,19,0,0,0,0],["2026-04-28","REACH","POST01","Metro1835","Metro",1835,"Tính năng",35,9,9,0,0,0,0],["2026-04-28","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1139,315,279,0,0,0,0],["2026-04-28","REACH","POST01","Green life3550","Green life",3550,"Tính năng",186,49,44,0,0,0,0],["2026-04-28","REACH","POST01","Metro1835","Metro",1835,"Tính năng",28,8,7,0,0,0,0],["2026-04-28","REACH","POST02","Green life1835","Green life",1835,"Tính năng",1847,474,465,0,0,0,0],["2026-04-28","REACH","POST02","Green life3550","Green life",3550,"Tính năng",23120,5700,5700,0,0,1,0],["2026-04-28","REACH","POST02","Metro1835","Metro",1835,"Tính năng",36667,10275,10259,0,0,2,0],["2026-04-28","REACH","POST02","Green life1835","Green life",1835,"Tính năng",69129,20539,19865,1,0,3,0],["2026-04-28","REACH","POST02","Green life3550","Green life",3550,"Tính năng",147416,41482,35523,0,0,13,0],["2026-04-28","REACH","POST02","Metro1835","Metro",1835,"Tính năng",7060,1835,1739,0,0,1,0],["2026-04-28","REACH","POST03","Green life1835","Green life",1835,"Green life",4107,1009,983,0,0,0,0],["2026-04-28","REACH","POST03","Green life3550","Green life",3550,"Green life",1023,260,259,0,0,0,0],["2026-04-28","REACH","POST03","Green life1835","Green life",1835,"Green life",1029,295,295,0,0,1,0],["2026-04-28","REACH","POST03","Green life3550","Green life",3550,"Green life",15022,4081,3864,0,0,2,0],["2026-04-28","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",1950,491,475,0,0,0,0],["2026-04-28","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",12891,3293,3265,0,0,1,0],["2026-04-28","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",11570,3418,3418,2,0,2,2],["2026-04-28","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",1572,428,384,0,0,3,0],["2026-04-28","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",39767,11668,11035,0,0,2,0],["2026-04-28","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",9894,3009,2925,2,0,3,2],["2026-04-28","REACH","POST06","Green life1835","Green life",1835,"Green life",40545,11434,10779,0,0,0,0],["2026-04-28","REACH","POST06","Green life3550","Green life",3550,"Green life",1137,332,327,0,0,0,0],["2026-04-28","REACH","POST07","Green life1835","Green life",1835,"Tính năng",1075,287,277,0,0,0,0],["2026-04-28","REACH","POST07","Green life3550","Green life",3550,"Tính năng",1140,328,324,0,0,0,0],["2026-04-28","REACH","POST07","Metro1835","Metro",1835,"Tính năng",11521,3344,3285,0,0,1,0],["2026-04-28","REACH","POST08","Green life1835","Green life",1835,"Tính năng",1213,299,298,0,0,0,0],["2026-04-28","REACH","POST08","Green life3550","Green life",3550,"Tính năng",1189,286,286,0,0,0,0],["2026-04-28","REACH","POST08","Metro1835","Metro",1835,"Tính năng",8700,2497,2464,0,0,0,0],["2026-04-28","REACH","POST08","Green life1835","Green life",1835,"Tính năng",1092,305,293,0,0,0,0],["2026-04-28","REACH","POST08","Green life3550","Green life",3550,"Tính năng",960,278,272,0,0,2,0],["2026-04-28","REACH","POST08","Metro1835","Metro",1835,"Tính năng",29384,8677,8501,0,0,0,0],["2026-04-28","REACH","POST09","Green life1835","Green life",1835,"Tính năng",61294,16299,15821,0,0,2,0],["2026-04-28","REACH","POST09","Green life3550","Green life",3550,"Tính năng",1075,249,247,0,0,1,0],["2026-04-28","REACH","POST09","Metro1835","Metro",1835,"Tính năng",5895,1622,1615,0,0,0,0],["2026-04-28","REACH","POST09","Green life1835","Green life",1835,"Tính năng",1135,313,309,0,0,0,0],["2026-04-28","REACH","POST09","Green life3550","Green life",3550,"Tính năng",16101,4742,4638,0,0,1,0],["2026-04-28","REACH","POST09","Metro1835","Metro",1835,"Tính năng",8735,2658,2598,0,0,1,0],["2026-04-28","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",8142,1570,1503,829,186,1,0],["2026-04-28","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",12512,496,366,397,290,0,0],["2026-04-28","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",6087,1352,1324,736,143,0,0],["2026-04-28","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",25375,2842,2603,1623,557,1,0],["2026-04-28","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",15162,640,522,474,349,1,0],["2026-04-28","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1533,357,340,198,31,0,0],["2026-04-29","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1353,283,268,0,0,0,0],["2026-04-29","REACH","POST01","Green life3550","Green life",3550,"Tính năng",1934,334,316,2,0,0,0],["2026-04-29","REACH","POST01","Metro1835","Metro",1835,"Tính năng",89,18,17,0,0,0,0],["2026-04-29","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1062,258,232,0,0,0,0],["2026-04-29","REACH","POST01","Green life3550","Green life",3550,"Tính năng",264,63,56,0,0,0,0],["2026-04-29","REACH","POST01","Metro1835","Metro",1835,"Tính năng",146,25,25,0,0,0,0],["2026-04-29","REACH","POST02","Green life1835","Green life",1835,"Tính năng",87981,20085,19080,3,0,5,0],["2026-04-29","REACH","POST02","Green life3550","Green life",3550,"Tính năng",162443,34296,34138,3,0,16,0],["2026-04-29","REACH","POST02","Metro1835","Metro",1835,"Tính năng",72931,14890,14268,3,0,19,0],["2026-04-29","REACH","POST02","Green life1835","Green life",1835,"Tính năng",1893,463,444,0,0,0,0],["2026-04-29","REACH","POST02","Green life3550","Green life",3550,"Tính năng",6057,1469,1466,0,0,1,0],["2026-04-29","REACH","POST02","Metro1835","Metro",1835,"Tính năng",916,215,215,0,0,0,0],["2026-04-29","REACH","POST03","Green life1835","Green life",1835,"Green life",62122,14047,13616,2,0,4,0],["2026-04-29","REACH","POST03","Green life3550","Green life",3550,"Green life",102442,21928,21721,7,0,14,0],["2026-04-29","REACH","POST03","Green life1835","Green life",1835,"Green life",1211,288,278,0,0,1,0],["2026-04-29","REACH","POST03","Green life3550","Green life",3550,"Green life",24058,5944,5944,1,0,0,0],["2026-04-29","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",82294,18435,18172,7,0,15,5],["2026-04-29","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",79326,17829,16908,1,0,8,0],["2026-04-29","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",40782,8696,8352,0,0,7,0],["2026-04-29","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",33496,8128,7411,2,0,6,0],["2026-04-29","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",22768,5749,5591,0,0,1,0],["2026-04-29","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",1642,372,355,0,0,0,0],["2026-04-29","REACH","POST06","Green life1835","Green life",1835,"Green life",1100,267,260,0,0,0,0],["2026-04-29","REACH","POST06","Green life3550","Green life",3550,"Green life",12041,2922,2922,0,0,1,0],["2026-04-29","REACH","POST07","Green life1835","Green life",1835,"Tính năng",42194,10259,9894,1,1,3,0],["2026-04-29","REACH","POST07","Green life3550","Green life",3550,"Tính năng",21391,5331,5177,2,2,1,0],["2026-04-29","REACH","POST07","Metro1835","Metro",1835,"Tính năng",1135,266,260,1,1,0,0],["2026-04-29","REACH","POST08","Green life1835","Green life",1835,"Tính năng",55122,13118,13118,1,0,7,0],["2026-04-29","REACH","POST08","Green life3550","Green life",3550,"Tính năng",97557,23175,22712,0,0,6,0],["2026-04-29","REACH","POST08","Metro1835","Metro",1835,"Tính năng",27302,5798,5798,1,0,4,0],["2026-04-29","REACH","POST08","Green life1835","Green life",1835,"Tính năng",19196,4620,4343,0,0,1,0],["2026-04-29","REACH","POST08","Green life3550","Green life",3550,"Tính năng",8398,2062,2041,0,0,0,0],["2026-04-29","REACH","POST08","Metro1835","Metro",1835,"Tính năng",1222,289,278,0,0,0,0],["2026-04-29","REACH","POST09","Green life1835","Green life",1835,"Tính năng",43071,9582,9582,2,0,14,0],["2026-04-29","REACH","POST09","Green life3550","Green life",3550,"Tính năng",132927,29057,28168,6,0,19,0],["2026-04-29","REACH","POST09","Metro1835","Metro",1835,"Tính năng",30061,6761,6598,0,0,6,0],["2026-04-29","REACH","POST09","Green life1835","Green life",1835,"Tính năng",18259,4514,4308,0,0,0,0],["2026-04-29","REACH","POST09","Green life3550","Green life",3550,"Tính năng",10746,2639,2574,0,0,2,0],["2026-04-29","REACH","POST09","Metro1835","Metro",1835,"Tính năng",2129,486,466,1,0,3,0],["2026-04-29","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1075565,36405,29765,14003,9195,146,0],["2026-04-29","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",95708,2348,1586,2014,1741,1,0],["2026-04-29","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",775706,26900,22884,9332,5134,99,2],["2026-04-29","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1792099,37779,10383,36327,34986,12,0],["2026-04-29","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",640097,14945,8984,13571,12827,9,0],["2026-04-29","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",83189,1895,1169,1744,1570,0,0],["2026-04-30","REACH","POST01","Green life1835","Green life",1835,"Tính năng",2132,404,404,2,1,1,0],["2026-04-30","REACH","POST01","Green life3550","Green life",3550,"Tính năng",4375,824,822,2,0,2,0],["2026-04-30","REACH","POST01","Metro1835","Metro",1835,"Tính năng",426,81,79,0,0,0,0],["2026-04-30","REACH","POST01","Green life1835","Green life",1835,"Tính năng",1643,346,313,0,0,0,0],["2026-04-30","REACH","POST01","Green life3550","Green life",3550,"Tính năng",2801,568,516,0,0,0,0],["2026-04-30","REACH","POST01","Metro1835","Metro",1835,"Tính năng",23691,4117,4013,3,1,0,0],["2026-04-30","REACH","POST02","Green life1835","Green life",1835,"Tính năng",6693,1263,1258,0,0,2,0],["2026-04-30","REACH","POST02","Green life3550","Green life",3550,"Tính năng",17299,3017,2986,2,0,3,2],["2026-04-30","REACH","POST02","Metro1835","Metro",1835,"Tính năng",2837,503,503,0,0,0,0],["2026-04-30","REACH","POST02","Green life1835","Green life",1835,"Tính năng",61667,13758,12838,2,0,8,0],["2026-04-30","REACH","POST02","Green life3550","Green life",3550,"Tính năng",10742,2041,1947,0,0,6,0],["2026-04-30","REACH","POST02","Metro1835","Metro",1835,"Tính năng",1182754,220551,211185,85,0,202,2],["2026-04-30","REACH","POST02","Green life1835","Green life",1835,"Tính năng",29720,6754,6754,3,0,7,0],["2026-04-30","REACH","POST02","Green life3550","Green life",3550,"Tính năng",83435,19423,18899,6,0,11,0],["2026-04-30","REACH","POST02","Metro1835","Metro",1835,"Tính năng",513378,106065,106065,50,0,107,0],["2026-04-30","REACH","POST03","Green life1835","Green life",1835,"Green life",16804,3094,3072,0,0,1,0],["2026-04-30","REACH","POST03","Green life3550","Green life",3550,"Green life",17450,3071,3009,0,0,2,0],["2026-04-30","REACH","POST03","Green life1835","Green life",1835,"Green life",59000,13151,12532,0,0,4,0],["2026-04-30","REACH","POST03","Green life3550","Green life",3550,"Green life",7252,1444,1368,0,0,3,0],["2026-04-30","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",4308,790,770,0,0,0,0],["2026-04-30","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",4857,907,892,1,0,0,0],["2026-04-30","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",2651,491,491,0,0,0,0],["2026-04-30","REACH","POST04","Green life1835","Green life",1835,"Ưu đãi metro",13671,2678,2501,0,0,5,0],["2026-04-30","REACH","POST04","Green life3550","Green life",3550,"Ưu đãi metro",15651,2915,2627,0,0,3,0],["2026-04-30","REACH","POST04","Metro1835","Metro",1835,"Ưu đãi metro",135503,28285,26559,6,0,18,3],["2026-04-30","REACH","POST06","Green life1835","Green life",1835,"Green life",1783,370,344,0,0,0,0],["2026-04-30","REACH","POST06","Green life3550","Green life",3550,"Green life",2770,545,500,0,0,0,0],["2026-04-30","REACH","POST06","Green life1835","Green life",1835,"Green life",326253,53920,51106,39,0,88,0],["2026-04-30","REACH","POST06","Green life3550","Green life",3550,"Green life",448875,74568,68617,56,0,143,0],["2026-04-30","REACH","POST07","Green life1835","Green life",1835,"Tính năng",2797,587,572,3,3,3,0],["2026-04-30","REACH","POST07","Green life3550","Green life",3550,"Tính năng",16182,2978,2666,6,6,5,0],["2026-04-30","REACH","POST07","Metro1835","Metro",1835,"Tính năng",280318,60353,57646,17,7,22,0],["2026-04-30","REACH","POST07","Green life1835","Green life",1835,"Tính năng",4713,1095,1085,0,0,1,0],["2026-04-30","REACH","POST07","Green life3550","Green life",3550,"Tính năng",33366,7751,7595,1,0,4,0],["2026-04-30","REACH","POST07","Metro1835","Metro",1835,"Tính năng",34720,7995,7982,1,0,3,0],["2026-04-30","REACH","POST08","Green life1835","Green life",1835,"Tính năng",14475,2678,2678,0,0,0,0],["2026-04-30","REACH","POST08","Green life3550","Green life",3550,"Tính năng",10564,1932,1871,1,0,1,0],["2026-04-30","REACH","POST08","Metro1835","Metro",1835,"Tính năng",5428,964,961,0,0,1,0],["2026-04-30","REACH","POST08","Green life1835","Green life",1835,"Tính năng",14041,2537,2444,1,0,3,0],["2026-04-30","REACH","POST08","Green life3550","Green life",3550,"Tính năng",31159,5720,5480,3,0,12,0],["2026-04-30","REACH","POST08","Metro1835","Metro",1835,"Tính năng",726226,133796,121285,39,0,102,0],["2026-04-30","REACH","POST09","Green life1835","Green life",1835,"Tính năng",2317,413,403,0,0,1,0],["2026-04-30","REACH","POST09","Green life3550","Green life",3550,"Tính năng",11683,2054,2052,0,0,4,0],["2026-04-30","REACH","POST09","Metro1835","Metro",1835,"Tính năng",3001,571,571,0,0,2,0],["2026-04-30","REACH","POST09","Green life1835","Green life",1835,"Tính năng",2812,553,543,0,0,0,0],["2026-04-30","REACH","POST09","Green life3550","Green life",3550,"Tính năng",8916,1723,1641,1,0,7,0],["2026-04-30","REACH","POST09","Metro1835","Metro",1835,"Tính năng",76395,15213,14716,3,0,17,0],["2026-04-30","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",115981,2858,1975,1774,1402,7,0],["2026-04-30","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",9376,328,328,220,185,1,0],["2026-04-30","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",145312,4028,3010,2153,1493,8,0],["2026-04-30","VIEW","POST12","Green life1835","Green life",1835,"Tính năng",1768233,31766,7892,31241,30846,0,0],["2026-04-30","VIEW","POST12","Green life3550","Green life",3550,"Tính năng",567332,12532,9213,11110,10214,14,1],["2026-04-30","VIEW","POST12","Metro1835","Metro",1835,"Tính năng",1010825,17816,4641,17659,17509,1,0],["2026-05-04","REACH","POST02","Metro1835","Metro",1835,"",0,0,0,0,0,0,0],["2026-05-26","REACH","POST13","Green life1835","Green life",1835,"",43559,8489,8056,4,0,31,0],["2026-05-26","REACH","POST14","Green life1835","Green life",1835,"",18721,3579,3559,3,0,9,0],["2026-05-26","REACH","POST15","Green life1835","Green life",1835,"",13536,2869,2732,1,0,2,0],["2026-05-26","REACH","POST13","Green life3550","Green life",3550,"",90812,17154,15802,16,0,84,0],["2026-05-26","REACH","POST14","Green life3550","Green life",3550,"",93211,19720,19273,4,0,12,0],["2026-05-26","REACH","POST15","Green life3550","Green life",3550,"",71715,16170,15918,6,0,10,0],["2026-05-26","REACH","POST13","Metro1835","Metro",1835,"",522896,99057,93916,85,0,313,0],["2026-05-26","REACH","POST14","Metro1835","Metro",1835,"",354685,66391,59384,21,0,43,1],["2026-05-26","REACH","POST15","Metro1835","Metro",1835,"",260548,49438,46304,22,0,50,2],["2026-05-27","REACH","POST13","Green life1835","Green life",1835,"",125,37,35,0,0,0,0],["2026-05-27","REACH","POST14","Green life1835","Green life",1835,"",2073,575,575,0,0,0,0],["2026-05-27","REACH","POST15","Green life1835","Green life",1835,"",4313,1238,1205,0,0,0,0],["2026-05-27","REACH","POST13","Green life3550","Green life",3550,"",34647,10192,10117,1,0,1,0],["2026-05-27","REACH","POST14","Green life3550","Green life",3550,"",273,80,79,0,0,0,0],["2026-05-27","REACH","POST15","Green life3550","Green life",3550,"",270152,82852,77460,1,0,4,0],["2026-05-27","REACH","POST13","Metro1835","Metro",1835,"",115156,34286,34286,1,0,6,0],["2026-05-27","REACH","POST14","Metro1835","Metro",1835,"",230267,71971,70459,1,0,8,0],["2026-05-27","REACH","POST15","Metro1835","Metro",1835,"",373294,116895,115793,4,0,15,0]];
-
-// ============ Main entrypoint ============
-function doGet(e) {
-  const out = {
-    fetched_at: new Date().toISOString(),
-    campaigns: {
-      mego: { rows: MEGO_DATA, source: 'embedded' },
-      gdhh: { rows: [], source: 'live' }
-    }
-  };
-
-  try {
-    out.campaigns.gdhh.rows = readGdhh();
-  } catch (err) {
-    out.campaigns.gdhh.error = String(err && err.message || err);
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vikki — Trúng Ngựa Vàng Ký Mùa 3 | Performance Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vikki-purple-dark: #4A0E5C;
+    --vikki-purple: #6B1C7E;
+    --vikki-purple-light: #8E2D9F;
+    --vikki-magenta: #B83A8F;
+    --vikki-pink: #E04A9D;
+    --vikki-gold: #D4A017;
+    --vikki-gold-light: #F4C430;
+    --vikki-gold-bright: #FFD700;
+    --bg-cream: #FAF7F2;
+    --bg-white: #FFFFFF;
+    --text-dark: #1A0F2E;
+    --text-mid: #4A3F5C;
+    --text-light: #7B7188;
+    --success: #2D8659;
+    --warning: #D97706;
+    --danger: #C2185B;
+    --border: #E8E0EE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: var(--bg-cream);
+    color: var(--text-dark);
+    line-height: 1.5;
+    font-size: 13px;
   }
 
-  const json = JSON.stringify(out);
+  .deck {
+    display: flex;
+    height: 100vh;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+  }
+  .deck::-webkit-scrollbar { height: 6px; }
+  .deck::-webkit-scrollbar-track { background: #F0E5F5; }
+  .deck::-webkit-scrollbar-thumb { background: var(--vikki-purple); border-radius: 3px; }
 
-  // JSONP support — when ?callback=fnName is provided, return JS that invokes the callback.
-  // This bypasses CORS so the dashboard works from file:// or any hosted origin.
-  if (e && e.parameter && e.parameter.callback) {
-    const cb = String(e.parameter.callback).replace(/[^a-zA-Z0-9_$]/g, '');
-    return ContentService
-      .createTextOutput(cb + '(' + json + ');')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  .slide {
+    flex: 0 0 100vw;
+    height: 100vh;
+    scroll-snap-align: start;
+    padding: 50px 60px 80px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(107, 28, 126, 0.3); border-radius: 3px; }
+
+  .slide-num {
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--vikki-purple-light);
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
 
-  return ContentService
-    .createTextOutput(json)
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ============ Read GĐHH sheet and map to compact 14-column format ============
-// Output columns: [date, objective, post, audMap, audName, age, creative,
-//                   cost, impression, reach, engagement, thruplay, click, link_click]
-function readGdhh() {
-  const ss = SpreadsheetApp.openById(GDHH_SHEET_ID);
-  const sheet = ss.getSheetByName(GDHH_SHEET_NAME);
-  if (!sheet) throw new Error('Sheet "' + GDHH_SHEET_NAME + '" not found');
-
-  const values = sheet.getDataRange().getValues();
-  if (values.length < 2) return [];
-
-  const header = values[0].map(h => String(h || '').trim().toLowerCase());
-  const idx = function() {
-    for (let i = 0; i < arguments.length; i++) {
-      const j = header.indexOf(String(arguments[i]).toLowerCase());
-      if (j >= 0) return j;
-    }
-    return -1;
-  };
-  const iDate = idx('date');
-  const iObj  = idx('objective');
-  const iPost = idx('post');
-  const iAud  = idx('audience mapping');
-  const iAudN = idx('audience name');
-  const iAge  = idx('age');
-  const iCre  = idx('creative name');
-  const iCost = idx('original cost', 'cost');
-  const iImpr = idx('impression', 'impressions');
-  const iRch  = idx('reach');
-  const iEng  = idx('engagement');
-  const iThr  = idx('fb thruplay action', 'thruplay');
-  const iClk  = idx('click', 'clicks');
-  const iLnk  = idx('link click', 'link clicks');
-
-  const audAlias = a => (String(a || '').trim() === 'Big Cities 25-36') ? 'Big Cities 26-36' : String(a || '').trim();
-  const ageAlias = a => (String(a || '').trim() === '25-36') ? '26-36' : String(a || '').trim();
-
-  const toNum = v => {
-    if (v == null || v === '') return 0;
-    if (typeof v === 'number') return v;
-    const n = parseFloat(String(v).replace(/[,\s]/g, ''));
-    return isNaN(n) ? 0 : n;
-  };
-
-  const fmtDate = v => {
-    if (!v) return null;
-    if (v instanceof Date) {
-      return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    }
-    const s = String(v).trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-    if (m) {
-      let d = m[1], mo = m[2], y = m[3];
-      if (y.length === 2) y = '20' + y;
-      return y + '-' + ('0'+mo).slice(-2) + '-' + ('0'+d).slice(-2);
-    }
-    return null;
-  };
-
-  const out = [];
-  for (let r = 1; r < values.length; r++) {
-    const row = values[r];
-    const date = fmtDate(row[iDate]);
-    if (!date) continue;
-    if (!row[iObj]) continue;
-    out.push([
-      date,
-      String(row[iObj] || '').trim().toUpperCase(),
-      String(row[iPost] || '').trim(),
-      audAlias(row[iAud]),
-      String(row[iAudN] || '').trim(),
-      ageAlias(row[iAge]),
-      String(row[iCre] || '').trim(),
-      toNum(row[iCost]),
-      toNum(row[iImpr]),
-      toNum(row[iRch]),
-      toNum(row[iEng]),
-      toNum(row[iThr]),
-      toNum(row[iClk]),
-      toNum(row[iLnk])
-    ]);
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--vikki-purple);
   }
-  return out;
-}
+  .title-badge {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--vikki-purple) 0%, var(--vikki-magenta) 100%);
+    color: white;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+    flex-shrink: 0;
+  }
+  h1.slide-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--vikki-purple-dark);
+    letter-spacing: -0.3px;
+  }
+  .slide-subtitle {
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-top: 2px;
+  }
+
+  .hero-slide {
+    background: linear-gradient(135deg, var(--vikki-purple-dark) 0%, var(--vikki-purple) 50%, var(--vikki-magenta) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-slide::before {
+    content: '🐴';
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 280px;
+    opacity: 0.1;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--vikki-gold-bright);
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    align-self: flex-start;
+  }
+  .hero-slide h1 {
+    font-size: 56px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px;
+  }
+  .hero-slide .subtitle { font-size: 22px; opacity: 0.85; margin-bottom: 40px; }
+  .hero-meta {
+    display: flex; gap: 48px; margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .hero-meta-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; margin-bottom: 6px; }
+  .hero-meta-item .value { font-size: 17px; font-weight: 600; }
+  .hero-cta {
+    margin-top: 40px;
+    color: var(--vikki-gold-bright);
+    font-size: 14px;
+    font-weight: 600;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateX(0);} 50%{transform:translateX(8px);} }
+
+  .exec-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border-left: 6px solid var(--vikki-gold);
+    box-shadow: 0 4px 20px rgba(74, 14, 92, 0.06);
+    margin-bottom: 20px;
+  }
+  .exec-card .label {
+    color: var(--vikki-purple);
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .exec-card p { font-size: 15px; line-height: 1.7; color: var(--text-dark); }
+  .exec-card strong { color: var(--vikki-purple-dark); }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: linear-gradient(135deg, #FFFCF5 0%, #FFF9E8 100%);
+    border: 1px solid #F4E4A8;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .kpi-card.purple {
+    background: linear-gradient(135deg, #FAF5FC 0%, #F3E8F7 100%);
+    border-color: #E5C7EF;
+  }
+  .kpi-card .kpi-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-mid); margin-bottom: 8px; font-weight: 600;
+  }
+  .kpi-card .kpi-value {
+    font-size: 22px; font-weight: 800; color: var(--vikki-purple-dark);
+    margin-bottom: 4px; line-height: 1.1;
+  }
+  .kpi-card .kpi-delta { font-size: 11px; font-weight: 600; margin-top: 6px; }
+  .kpi-delta.up { color: var(--success); }
+  .kpi-delta.down { color: var(--danger); }
+  .kpi-delta.warn { color: var(--warning); }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin: 12px 0 18px;
+    max-height: calc(100vh - 280px);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  thead {
+    background: linear-gradient(135deg, var(--vikki-purple) 0%, var(--vikki-purple-light) 100%);
+    position: sticky; top: 0; z-index: 2;
+  }
+  thead th {
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #FAF5FC; }
+  tbody tr:nth-child(even) { background: #FCFAFD; }
+  tbody tr:nth-child(even):hover { background: #F5EDF8; }
+  tbody td { padding: 9px 12px; vertical-align: middle; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td.bold { font-weight: 600; color: var(--vikki-purple-dark); }
+  tbody tr.total { background: linear-gradient(90deg, #F0DBF6 0%, #FFF0C8 100%); font-weight: 700; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge.good { background: #D8F0E3; color: var(--success); }
+  .badge.bad { background: #FCE0EC; color: var(--danger); }
+  .badge.warn { background: #FEE9D0; color: var(--warning); }
+  .badge.best { background: linear-gradient(135deg, var(--vikki-gold-light), var(--vikki-gold)); color: var(--vikki-purple-dark); }
+
+  .note {
+    background: linear-gradient(135deg, #FAF5FC 0%, #FFF9E8 100%);
+    border-left: 4px solid var(--vikki-gold);
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-radius: 0 10px 10px 0;
+    font-size: 13px;
+  }
+  .note-label {
+    color: var(--vikki-purple); font-weight: 700; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .note ul { margin: 0; padding-left: 18px; }
+  .note ul li { margin-bottom: 4px; }
+
+  .rc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .rc-card {
+    background: linear-gradient(135deg, #FFF5F8 0%, #FFEBEF 100%);
+    border-radius: 10px;
+    padding: 12px;
+    border-left: 4px solid var(--danger);
+  }
+  .rc-title { font-weight: 700; color: var(--danger); margin-bottom: 4px; font-size: 12px; }
+  .rc-card p { font-size: 11px; color: var(--text-dark); }
+
+  .tldr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+  .tldr-card { padding: 18px; border-radius: 14px; }
+  .tldr-card.working {
+    background: linear-gradient(135deg, #E8F7EE 0%, #D8F0E3 100%);
+    border-left: 5px solid var(--success);
+  }
+  .tldr-card.broken {
+    background: linear-gradient(135deg, #FFF0F4 0%, #FCE0EC 100%);
+    border-left: 5px solid var(--danger);
+  }
+  .tldr-card h3 { font-size: 14px; margin-bottom: 8px; }
+  .tldr-card ul { list-style: none; padding: 0; }
+  .tldr-card ul li {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 12px;
+  }
+  .tldr-card ul li:last-child { border-bottom: none; }
+  .big-move {
+    background: linear-gradient(135deg, var(--vikki-purple) 0%, var(--vikki-magenta) 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+  }
+  .big-move-label {
+    color: var(--vikki-gold-bright);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .big-move-text { font-size: 14px; font-weight: 600; line-height: 1.5; }
+
+  .priority-label {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .priority-label.critical { background: #FCE0EC; color: var(--danger); }
+  .priority-label.high { background: #FEE9D0; color: var(--warning); }
+  .priority-label.medium { background: #D8F0E3; color: var(--success); }
+
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(74, 14, 92, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 20px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    overflow-x: auto;
+  }
+  .nav-dot {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.25); }
+  .nav-dot.active { background: var(--vikki-gold); color: var(--vikki-purple-dark); }
+  .nav-arrow {
+    background: rgba(255,215,0,0.2);
+    color: var(--vikki-gold-bright);
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .nav-arrow:hover { background: var(--vikki-gold); color: var(--vikki-purple-dark); }
+  .nav-counter {
+    color: var(--vikki-gold-bright);
+    font-size: 11px;
+    font-weight: 700;
+    margin: 0 12px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .two-col, .rc-grid, .tldr-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <section class="slide hero-slide" data-name="Trang đầu">
+    <span class="hero-tag">🏆 PERFORMANCE REPORT</span>
+    <h1>Vikki<br>Trúng Ngựa Vàng Ký Mùa 3</h1>
+    <div class="subtitle">Campaign-to-Date | 14/04 → 26/05/2026</div>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><div class="label">Client</div><div class="value">Vikki Digital Bank</div></div>
+      <div class="hero-meta-item"><div class="label">Agency</div><div class="value">PMAX</div></div>
+      <div class="hero-meta-item"><div class="label">Channels</div><div class="value">Meta + TikTok Ads</div></div>
+      <div class="hero-meta-item"><div class="label">Solution</div><div class="value">Branding &amp; App</div></div>
+    </div>
+    <div class="hero-cta">→ Kéo ngang hoặc dùng phím mũi tên để xem các sections</div>
+  </section>
+
+  <section class="slide" data-name="Tổng quan">
+    <div class="slide-num">SECTION 01 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">1</div>
+      <div>
+        <h1 class="slide-title">Overall — KPI vs Actual</h1>
+        <div class="slide-subtitle">Tóm tắt nhanh + bảng tổng hợp chỉ số</div>
+      </div>
+    </div>
+
+    <div class="exec-card">
+      <div class="label">⚡ Executive Summary</div>
+      <p><strong>Các mục tiêu chính đều vượt cam kết về số lượng, ở đơn giá rẻ hơn kế hoạch nhiều lần:</strong> tương tác vượt mục tiêu ~6 lần, cài đặt app vượt ~27%, độ phủ &amp; lượt xem đều đạt — tất cả ở CPM/CPE/CPV/CPI thấp hơn kế hoạch. <strong>⇒ Ngân sách đang được dùng rất hiệu quả.</strong>
+      Tuy nhiên mới dùng <strong>14.69% ngân sách</strong> (thời gian đã trôi 50.6%) → nếu tăng tốc chi tiêu, kết quả <strong>còn có thể tăng lên nhiều lần</strong>.
+      <strong>Cần xử lý:</strong> Facebook App chưa chạy (0% — phần ngân sách lớn nhất) và tỷ lệ Đăng ký/Cài đặt Android còn thấp (0.81%).</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Tổng chi phí</div><div class="kpi-value">118.75M</div><div class="kpi-delta warn">14.69% of 808.16M</div></div>
+      <div class="kpi-card purple"><div class="kpi-label">Impression</div><div class="kpi-value">11.72M</div><div class="kpi-delta up">Facebook 9.3M + TikTok 2.4M</div></div>
+      <div class="kpi-card purple"><div class="kpi-label">Engagement</div><div class="kpi-value">1.28M</div><div class="kpi-delta up">↑ Mục tiêu Engagement vượt 609%</div></div>
+      <div class="kpi-card"><div class="kpi-label">App Install</div><div class="kpi-value">6,898</div><div class="kpi-delta up">↑ Vượt 128% (TikTok App)</div></div>
+      <div class="kpi-card purple"><div class="kpi-label">Reach</div><div class="kpi-value">10.98M</div><div class="kpi-delta">Blended CPM 10,133</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Kênh</th><th>Mục tiêu</th><th>Nội dung</th>
+          <th class="num">Chi phí kế hoạch</th><th class="num">Đơn giá kế hoạch</th>
+          <th class="num">Chi phí thực tế</th><th class="num">Đơn giá thực tế</th>
+          <th class="num">% đạt (chi phí)</th><th class="num">% đạt (đơn giá)</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Facebook</td><td>Reach</td><td>Live</td><td class="num">69,187,380</td><td class="num">8,400</td><td class="num">32,768,355</td><td class="num">7,692</td><td class="num"><span class="badge bad">47%</span></td><td class="num"><span class="badge good">109%</span></td></tr>
+          <tr><td>Facebook</td><td>Reach</td><td>AWO</td><td class="num">120,935,401</td><td class="num">8,400</td><td class="num">10,893,165</td><td class="num">4,985</td><td class="num"><span class="badge bad">9%</span></td><td class="num"><span class="badge good">169%</span></td></tr>
+          <tr><td>Facebook</td><td>Engagement</td><td>Live</td><td class="num">69,187,380</td><td class="num">1,260</td><td class="num">34,406,943</td><td class="num bold">63</td><td class="num"><span class="badge bad">50%</span></td><td class="num"><span class="badge best">2,013%</span></td></tr>
+          <tr><td>Facebook</td><td>Engagement</td><td>AWO</td><td class="num">60,420,140</td><td class="num">1,260</td><td class="num">5,552,911</td><td class="num bold">16</td><td class="num"><span class="badge bad">9%</span></td><td class="num"><span class="badge best">8,035%</span></td></tr>
+          <tr><td>Facebook</td><td>Engagement</td><td>Pagelike</td><td class="num">60,420,140</td><td class="num">1,260</td><td class="num">3,231,518</td><td class="num bold">210</td><td class="num"><span class="badge bad">5%</span></td><td class="num"><span class="badge best">601%</span></td></tr>
+          <tr><td>Facebook</td><td>App</td><td>App</td><td class="num">150,005,400</td><td class="num">18,500</td><td class="num bold">0</td><td class="num">—</td><td class="num"><span class="badge bad">0%</span></td><td class="num">—</td></tr>
+          <tr><td>TikTok</td><td>App</td><td>App</td><td class="num">100,003,600</td><td class="num">18,500</td><td class="num">17,009,898</td><td class="num">2,466</td><td class="num"><span class="badge bad">17%</span></td><td class="num"><span class="badge good">750%</span></td></tr>
+          <tr><td>TikTok</td><td>Reach</td><td>AWO</td><td class="num">84,995,400</td><td class="num">14,700</td><td class="num">8,748,043</td><td class="num">4,749</td><td class="num"><span class="badge bad">10%</span></td><td class="num"><span class="badge good">309%</span></td></tr>
+          <tr><td>TikTok</td><td>View</td><td>AWO</td><td class="num">46,500,100</td><td class="num">850</td><td class="num">3,384,310</td><td class="num bold">127</td><td class="num"><span class="badge bad">7%</span></td><td class="num"><span class="badge good">669%</span></td></tr>
+          <tr><td>TikTok</td><td>View</td><td>Pagelike</td><td class="num">46,500,100</td><td class="num">850</td><td class="num">2,751,192</td><td class="num bold">655</td><td class="num"><span class="badge bad">6%</span></td><td class="num"><span class="badge good">130%</span></td></tr>
+          <tr class="total"><td colspan="3" class="bold">GRAND TOTAL</td><td class="num bold">808,155,042</td><td class="num bold">—</td><td class="num bold">118,747,306</td><td class="num bold">—</td><td class="num"><span class="badge warn">14.69%</span></td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="color:var(--text-light);font-size:11px;margin-top:-8px;">Unit cost được xem theo từng mục tiêu, không cộng gộp ở dòng tổng vì khác đơn vị (CPM / CPE / CPV / CPI).</div>
+  </section>
+
+  <section class="slide" data-name="Pool & Reach">
+    <div class="slide-num">SECTION 02 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">1B</div>
+      <div><h1 class="slide-title">Audience Pool & Reach</h1><div class="slide-subtitle">Độ phủ thực tế so với quy mô khán giả có thể tiếp cận · theo Chiến dịch × Kênh</div></div>
+    </div>
+
+    <div class="note" style="margin-top:0;">
+      <div class="note-label">🎯 Detail Targeting</div>
+      <ul>
+        <li><strong>Facebook:</strong> Saving, Bank account, Financial market, Personal finance, Financial plan/services, Savings account, Digital wallet, Investment management/strategy, Online banking, Savings bank, Wealth management, Retirement planning, Pension/Pension fund, Retirement age</li>
+        <li><strong>TikTok:</strong> Third-Party Payments, Digital Devices, Investment Planning & Management, Securities, Technology</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Chỉ số</th>
+            <th colspan="2" style="text-align:center">AWO</th>
+            <th colspan="2" style="text-align:center">Live</th>
+            <th colspan="2" style="text-align:center">App</th>
+            <th colspan="2" style="text-align:center">Pagelike</th>
+          </tr>
+          <tr>
+            <th class="num">Facebook</th><th class="num">TikTok</th>
+            <th class="num">Facebook</th><th class="num">TikTok</th>
+            <th class="num">Facebook</th><th class="num">TikTok</th>
+            <th class="num">Facebook</th><th class="num">TikTok</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="bold">Media spending</td><td class="num">9,248,790</td><td class="num">3,803,973</td><td class="num">23,590,828</td><td class="num">—</td><td class="num">—</td><td class="num">3,398,034</td><td class="num">0</td><td class="num">1,545,804</td></tr>
+          <tr><td class="bold">Tổng khán giả có thể tiếp cận</td><td class="num">29,250,000</td><td class="num">26,629,000</td><td class="num">29,250,000</td><td class="num">26,629,000</td><td class="num">29,250,000</td><td class="num">26,629,000</td><td class="num">29,250,000</td><td class="num">26,629,000</td></tr>
+          <tr><td class="bold">Impression</td><td class="num">1,725,835</td><td class="num">465,062</td><td class="num">2,767,063</td><td class="num">—</td><td class="num">—</td><td class="num">23,826</td><td class="num">0</td><td class="num">13,687</td></tr>
+          <tr><td class="bold">CPM</td><td class="num">5,359</td><td class="num">8,179</td><td class="num">8,526</td><td class="num">—</td><td class="num">—</td><td class="num">142,619</td><td class="num">0</td><td class="num">112,940</td></tr>
+          <tr><td class="bold">Frequency</td><td class="num">2.15</td><td class="num">0.75</td><td class="num">0.94</td><td class="num">—</td><td class="num">—</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">3.53</td></tr>
+          <tr><td class="bold">Unique Reach</td><td class="num">802,023</td><td class="num">616,217</td><td class="num bold">2,938,639</td><td class="num">—</td><td class="num">—</td><td class="num">169,806</td><td class="num">27,047</td><td class="num">3,881</td></tr>
+          <tr style="background:linear-gradient(90deg,#F0DBF6,#FFF0C8);font-weight:700;"><td class="bold">% đã tiếp cận</td><td class="num">2.74%</td><td class="num">2.31%</td><td class="num"><span class="badge best">10.05%</span></td><td class="num">0.00%</td><td class="num">0.00%</td><td class="num">0.64%</td><td class="num">0.09%</td><td class="num">0.01%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Nhận xét — độ phủ</div>
+      <ul>
+        <li><strong>Lượng người có thể tiếp cận còn rất lớn: Facebook 29.25M, TikTok 26.6M</strong> — nhưng mới chạm tối đa ~10% → còn rất nhiều chỗ để tăng độ phủ</li>
+        <li><strong>Live Facebook phủ mạnh nhất 10.05%</strong> (Unique Reach 2.94M) — Live là format kéo reach hiệu quả nhất trên Facebook</li>
+        <li>AWO phủ ~2.3–2.7% cả 2 kênh; App/Pagelike phủ &lt;1% (CPM cao do targeting hẹp: App-TikTok 142,619, Pagelike-TikTok 112,940)</li>
+        <li><strong>App-Facebook = 0 & Live-TikTok = 0</strong> — khớp report: Facebook App chưa launch, TikTok chưa chạy Live ✓</li>
+        <li style="color:var(--text-light);font-size:11px;">ⓘ Số liệu độ phủ lấy từ dữ liệu nhân khẩu học (khoảng thời gian riêng), dùng để tham khảo quy mô nhóm khán giả.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Channel">
+    <div class="slide-num">SECTION 03 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">2</div>
+      <div><h1 class="slide-title">Deepdive by Channel</h1><div class="slide-subtitle">Meta vs TikTok</div></div>
+    </div>
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">KPI cam kết — kết quả theo kênh</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Kênh — Mục tiêu</th><th class="num">Kết quả đạt được</th><th class="num">Đơn giá thực tế</th><th class="num">Đơn giá kế hoạch</th><th>Hiệu quả</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Facebook — Reach</td><td class="num bold">6,119,843 lượt tiếp cận</td><td class="num">CPM 6,759</td><td class="num">CPM 8,400</td><td><span class="badge good">rẻ ~20%</span></td></tr>
+          <tr><td class="bold">Facebook — Engagement</td><td class="num bold">905,222 tương tác</td><td class="num">CPE 44</td><td class="num">CPE 1,260</td><td><span class="badge best">rẻ ~29x</span></td></tr>
+          <tr><td class="bold">TikTok — Reach</td><td class="num bold">1,827,070 lượt tiếp cận</td><td class="num">CPM 4,749</td><td class="num">CPM 14,700</td><td><span class="badge best">rẻ ~3x</span></td></tr>
+          <tr><td class="bold">TikTok — View</td><td class="num bold">26,656 lượt xem (15s)</td><td class="num">CPV 127</td><td class="num">CPV 850</td><td><span class="badge best">rẻ ~6.7x</span></td></tr>
+          <tr><td class="bold">App Install (TikTok)</td><td class="num bold">6,898 cài đặt</td><td class="num">CPI 2,301</td><td class="num">CPI 18,500</td><td><span class="badge best">rẻ ~8x</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="color:var(--text-light);font-size:11px;margin:-6px 0 16px;">Đơn giá so cùng đơn vị (CPM/CPE/CPV/CPI). Chi tiết App Install theo OS &amp; nhóm tuổi ở slide kế tiếp.</div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:6px 0 8px;">So sánh tổng thể Meta vs TikTok</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Chỉ số</th><th class="num">Meta</th><th class="num">TikTok</th><th>Kênh tốt hơn</th></tr></thead>
+        <tbody>
+          <tr><td>Chi phí</td><td class="num">86,853,863 (73%)</td><td class="num">31,893,443 (27%)</td><td>—</td></tr>
+          <tr><td>Impressions</td><td class="num">9,320,559</td><td class="num">2,395,775</td><td><span class="badge best">Meta 3.9x</span></td></tr>
+          <tr><td>Reach</td><td class="num">8,672,395</td><td class="num">2,305,111</td><td><span class="badge best">Meta 3.8x</span></td></tr>
+          <tr><td class="bold">CPM</td><td class="num bold">9,319</td><td class="num">13,312</td><td><span class="badge best">Meta -30%</span></td></tr>
+          <tr><td class="bold">Cost/Reach</td><td class="num bold">10</td><td class="num">14</td><td><span class="badge best">Meta -28%</span></td></tr>
+          <tr><td>CTR%</td><td class="num">0.42%</td><td class="num bold">1.85%</td><td><span class="badge best">TikTok 4.4x</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <div class="note-label">📝 Nhận xét</div>
+      <ul>
+        <li><strong>Meta = kênh chính để tăng nhận diện &amp; độ phủ</strong>: CPM rẻ hơn ~30%, độ phủ gấp ~3.8x</li>
+        <li><strong>TikTok = kênh chính tạo tương tác</strong>: CTR cao gấp ~4.4x</li>
+        <li>Đề xuất: giữ vai trò mỗi kênh — Meta dẫn độ phủ, TikTok tối ưu tương tác / chuyển đổi</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="App × OS × Audience">
+    <div class="slide-num">SECTION 04 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">3</div>
+      <div><h1 class="slide-title">App Install — OS × Audience</h1><div class="slide-subtitle">Android vs iOS × Young vs Senior</div></div>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">Theo hệ điều hành (OS)</h3>
+    <div class="table-wrap" style="max-height:200px;">
+      <table>
+        <thead><tr><th>OS</th><th class="num">Chi phí</th><th class="num">Install</th><th class="num">Đăng ký</th><th class="num">CPI</th><th class="num">Chi phí/Đăng ký</th><th class="num">Đăng ký/Install %</th><th>Vấn đề</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Android</td><td class="num">15,871,901</td><td class="num">6,898</td><td class="num">56*</td><td class="num bold">2,301</td><td class="num">283,427</td><td class="num bold">0.81%</td><td><span class="badge bad">🔴 Nghẽn phễu</span></td></tr>
+          <tr><td class="bold">iOS</td><td class="num">1,137,997</td><td class="num">0</td><td class="num">0</td><td class="num">n/a</td><td class="num">n/a</td><td class="num">n/a</td><td><span class="badge bad">🔴 Lỗi đo lường</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:16px 0 8px;">Theo hệ điều hành × Nhóm khán giả</h3>
+    <div class="table-wrap" style="max-height:240px;">
+      <table>
+        <thead><tr><th>OS</th><th>Audience</th><th class="num">Chi phí</th><th class="num">% chi phí</th><th class="num">Install</th><th class="num">CPI</th><th>Ghi chú</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Android</td><td class="bold">YOUNG</td><td class="num">12,331,109</td><td class="num">72.5%</td><td class="num">5,358</td><td class="num bold">2,301</td><td><span class="badge best">🏆 Tiếp tục scale up</span></td></tr>
+          <tr><td class="bold">Android</td><td class="bold">SENIOR</td><td class="num">3,540,792</td><td class="num">20.8%</td><td class="num">1,540</td><td class="num bold">2,299</td><td><span class="badge good">CPI = Young — nên tăng thêm</span></td></tr>
+          <tr><td>iOS</td><td>YOUNG</td><td class="num">624,726</td><td class="num">3.7%</td><td class="num">0</td><td class="num">n/a</td><td><span class="badge bad">Lỗi đo lường</span></td></tr>
+          <tr><td>iOS</td><td>SENIOR</td><td class="num">513,271</td><td class="num">3.0%</td><td class="num">0</td><td class="num">n/a</td><td><span class="badge bad">Lỗi đo lường</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Insight quan trọng</div>
+      <ul>
+        <li><strong>CPI Android YOUNG (2,301) ≈ SENIOR (2,299)</strong> — Senior cũng hiệu quả cho App</li>
+        <li>Hiện chỉ chi 21% budget cho SENIOR App → cân nhắc tăng lên <strong>30-35%</strong> (LTV cao hơn cho fintech tiết kiệm)</li>
+        <li>Android Đăng ký/Install 0.81% (mức chuẩn ngành 20-40%) → người dùng bị rớt nhiều ở bước đăng ký/mở tài khoản</li>
+        <li>iOS toàn bộ tracking lỗi — cần fix SDK / App Store Connect</li>
+        <li style="color:var(--text-light);font-size:11px;">* Số đăng ký (unique) lấy từ báo cáo riêng của TikTok; cài đặt và đăng ký đến từ 2 nguồn nên khoảng thời gian có thể lệch nhẹ.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Growth Page">
+    <div class="slide-num">SECTION 05 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">3B</div>
+      <div><h1 class="slide-title">Tăng trưởng Trang &amp; Kênh</h1><div class="slide-subtitle">Người theo dõi mới từ chiến dịch Pagelike (Facebook) &amp; LikePage (TikTok)</div></div>
+    </div>
+
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi-card"><div class="kpi-label">Tổng người theo dõi mới</div><div class="kpi-value">2,323</div><div class="kpi-delta up">Facebook 1,471 + TikTok 852</div></div>
+      <div class="kpi-card purple"><div class="kpi-label">Lượt thích Trang (Facebook)</div><div class="kpi-value">1,471</div><div class="kpi-delta">~2,197đ / lượt</div></div>
+      <div class="kpi-card purple"><div class="kpi-label">Follow mới (TikTok)</div><div class="kpi-value">852</div><div class="kpi-delta">~3,229đ / follow</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Kênh</th><th class="num">Chi phí</th><th class="num">Người theo dõi mới</th><th class="num">Nghiệm thu — Kế hoạch</th><th class="num">Nghiệm thu — Thực tế</th><th class="num">vs Kế hoạch</th><th>Đánh giá</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Facebook (Pagelike)</td><td class="num">3,231,518</td><td class="num bold">1,471 lượt thích Trang</td><td class="num">CPE 1,260</td><td class="num bold">CPE 210</td><td class="num"><span class="badge best">600%</span></td><td><span class="badge best">✨ rẻ 6x — còn tăng được nhiều</span></td></tr>
+          <tr><td class="bold">TikTok (LikePage)</td><td class="num">2,751,192</td><td class="num bold">852 follow</td><td class="num">CPV view-2s 850</td><td class="num bold">CPV view-2s 655</td><td class="num"><span class="badge good">130%</span></td><td><span class="badge good">✨ rẻ ~30% — còn tăng được nhiều</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Nhận xét</div>
+      <ul>
+        <li>2 chiến dịch tăng Trang/Kênh đem về <strong>2,323 người theo dõi mới</strong> (1,471 lượt thích Trang Facebook + 852 follow TikTok), chi phí trung bình ~2,575đ/người theo dõi.</li>
+        <li>Nghiệm thu theo đơn giá hợp đồng — Facebook tính trên <strong>CPE</strong>, TikTok tính trên <strong>CPV view-2s</strong>: cả hai đều rẻ hơn kế hoạch (CPE 210 vs 1,260 — rẻ 6x; CPV-2s 655 vs 850 — rẻ ~30%) → hiệu quả tốt, <strong>còn tăng quy mô được nhiều</strong> (mới dùng ~6% ngân sách kế hoạch của nhóm này).</li>
+        <li>Nghiệm thu KHÔNG dùng CPM (vì nhóm này chạy bằng ngân sách Engagement/View).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Audience &amp; Region">
+    <div class="slide-num">SECTION 06 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">4</div>
+      <div><h1 class="slide-title">Deepdive by Audience</h1><div class="slide-subtitle">Theo nhóm tuổi &amp; vùng · ⓘ Dữ liệu: 01/04–15/05</div></div>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">Toàn bộ chỉ số theo nhóm khán giả — Meta</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Nhóm</th><th class="num">Chi phí</th><th class="num">Impression</th><th class="num">Reach</th><th class="num">Engagement</th><th class="num">Clicks</th><th class="num">CTR%</th><th class="num">CPE</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Senior</td><td class="num">48,807,404</td><td class="num">5,369,564</td><td class="num">5,036,731</td><td class="num bold">794,619</td><td class="num">25,526</td><td class="num">0.48%</td><td class="num bold">61</td></tr>
+          <tr><td class="bold">Young</td><td class="num">38,046,459</td><td class="num">3,970,537</td><td class="num">3,653,020</td><td class="num">484,741</td><td class="num">13,945</td><td class="num">0.35%</td><td class="num">78</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:16px 0 8px;">Toàn bộ chỉ số theo nhóm khán giả — TikTok</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Nhóm</th><th class="num">Chi phí</th><th class="num">Impression</th><th class="num">Reach</th><th class="num">View (2s)</th><th class="num">Clicks</th><th class="num">CTR%</th><th class="num">Install</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Senior</td><td class="num">11,734,440</td><td class="num">1,202,583</td><td class="num">1,167,426</td><td class="num">160,481</td><td class="num">13,759</td><td class="num">1.14%</td><td class="num">1,540</td></tr>
+          <tr><td class="bold">Young</td><td class="num">20,159,003</td><td class="num">1,193,192</td><td class="num">1,137,685</td><td class="num">113,602</td><td class="num">30,614</td><td class="num bold">2.57%</td><td class="num bold">5,358</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="color:var(--text-light);font-size:11px;margin:-6px 0 14px;">Reach/View là số cộng dồn theo ngày. CPI theo nhóm tuổi xem ở slide App Install.</div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:16px 0 8px;">Chi tiết theo độ tuổi</h3>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">Meta — theo độ tuổi</h3>
+        <div class="table-wrap" style="max-height:none;">
+          <table>
+            <thead><tr><th>Độ tuổi</th><th class="num">Chi phí</th><th class="num">%</th><th class="num">CPE</th><th class="num">ER%</th></tr></thead>
+            <tbody>
+              <tr><td class="bold">25-34</td><td class="num">28.9M</td><td class="num bold">38.4%</td><td class="num">79</td><td class="num"><span class="badge bad">12.5%</span></td></tr>
+              <tr><td>35-44</td><td class="num">18.9M</td><td class="num">25.2%</td><td class="num">93</td><td class="num">10.0%</td></tr>
+              <tr><td>45-54</td><td class="num">12.5M</td><td class="num">16.6%</td><td class="num">68</td><td class="num">13.4%</td></tr>
+              <tr><td>55-64</td><td class="num">9.5M</td><td class="num">12.6%</td><td class="num">47</td><td class="num"><span class="badge good">20.3%</span></td></tr>
+              <tr><td class="bold">65+</td><td class="num">5.4M</td><td class="num">7.2%</td><td class="num bold">41</td><td class="num"><span class="badge best">25.4%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">TikTok — theo độ tuổi</h3>
+        <div class="table-wrap" style="max-height:none;">
+          <table>
+            <thead><tr><th>Độ tuổi</th><th class="num">%</th><th class="num">Install</th><th class="num">CPI</th></tr></thead>
+            <tbody>
+              <tr><td class="bold">25-34</td><td class="num bold">60%</td><td class="num">5,386 (78%)</td><td class="num bold">3,781</td></tr>
+              <tr><td>35-44</td><td class="num">15.5%</td><td class="num">1,013</td><td class="num">5,173</td></tr>
+              <tr><td>45-54</td><td class="num">10.1%</td><td class="num">533</td><td class="num">6,445</td></tr>
+              <tr><td>≥55</td><td class="num">6.3%</td><td class="num">0</td><td class="num">n/a</td></tr>
+              <tr><td>13-17 + 18-24</td><td class="num">1.7%</td><td class="num">0</td><td class="num">n/a</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:18px 0 8px;">Top 5 vùng theo chi tiêu — Meta</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Vùng</th><th class="num">Chi phí</th><th class="num">%</th><th class="num">CPM</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">HCMC</td><td class="num">6,484,062</td><td class="num">8.6%</td><td class="num">11,818</td></tr>
+          <tr><td class="bold">Hà Nội</td><td class="num">4,519,856</td><td class="num">6.0%</td><td class="num">11,692</td></tr>
+          <tr><td>Nghệ An</td><td class="num">2,990,780</td><td class="num">4.0%</td><td class="num">9,794</td></tr>
+          <tr><td>Thanh Hóa</td><td class="num">2,669,991</td><td class="num">3.6%</td><td class="num">9,654</td></tr>
+          <tr><td>Đồng Nai</td><td class="num">2,311,331</td><td class="num">3.1%</td><td class="num">9,732</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Insight ngược kỳ vọng</div>
+      <ul>
+        <li>Meta <strong>65+ ER 25.4%, CPE 41</strong> (rẻ gấp 2x age 25-34) — Senior engage tốt hơn Young với Livestream content</li>
+        <li>Hiện nhóm 25-34 đang nhận quá nhiều ngân sách (38%) trong khi 65+ chỉ 7% — nên điều chỉnh lại</li>
+        <li>TikTok đúng chiều: 25-34 dominate install (78%) — phù hợp App acquisition</li>
+        <li>TikTok age &lt;25 0 install — loại trừ</li>
+        <li><strong>HCMC + Hà Nội chỉ chiếm 14.6%</strong> chi tiêu — phù hợp chiến lược phủ rộng Tier 2-3 cho fintech</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Angle × Audience (Meta)">
+    <div class="slide-num">SECTION 07 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">5A</div>
+      <div><h1 class="slide-title">Angle × Audience — META</h1><div class="slide-subtitle">CPE và ER% pivot</div></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">CPE theo độ tuổi</h3>
+        <div class="table-wrap" style="max-height:none;">
+          <table>
+            <thead><tr><th>Angle</th><th class="num">SENIOR</th><th class="num">YOUNG</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+              <tr><td class="bold">Master Video</td><td class="num bold">26</td><td class="num bold">26</td><td><span class="badge best">✨ Hiệu quả cả 2 nhóm</span></td></tr>
+              <tr><td>Livestream Kỳ 11</td><td class="num bold">44</td><td class="num">74</td><td>Senior win</td></tr>
+              <tr><td>Thông báo Live</td><td class="num">47</td><td class="num">82</td><td>Senior win</td></tr>
+              <tr><td>Livestream Kỳ 10</td><td class="num bold">53</td><td class="num">85</td><td>Senior win</td></tr>
+              <tr><td>Livestream Kỳ 9</td><td class="num bold">53</td><td class="num">96</td><td>Senior win</td></tr>
+              <tr><td>Livestream Kỳ 8</td><td class="num bold">58</td><td class="num">88</td><td>Senior win</td></tr>
+              <tr><td>Livestream Kỳ 6</td><td class="num bold">93</td><td class="num">168</td><td>Senior 1.8x</td></tr>
+              <tr><td>Livestream Kỳ 7</td><td class="num">97</td><td class="num">121</td><td>Senior win</td></tr>
+              <tr><td>Vikki Trúng Vàng</td><td class="num">202</td><td class="num">218</td><td>≈</td></tr>
+              <tr><td class="bold">Single Photo</td><td class="num">4,957</td><td class="num">7,136</td><td><span class="badge bad">❌ Hiệu suất rất thấp</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--vikki-purple);font-size:14px;margin-bottom:8px;">ER% theo độ tuổi</h3>
+        <div class="table-wrap" style="max-height:none;">
+          <table>
+            <thead><tr><th>Angle</th><th class="num">SENIOR</th><th class="num">YOUNG</th></tr></thead>
+            <tbody>
+              <tr><td class="bold">Vikki Trúng Vàng</td><td class="num bold">43.42%</td><td class="num">30.65%</td></tr>
+              <tr><td>Master Video</td><td class="num">23.38%</td><td class="num bold">25.73%</td></tr>
+              <tr><td>Livestream Kỳ 8</td><td class="num bold">20.54%</td><td class="num">8.91%</td></tr>
+              <tr><td>Livestream Kỳ 11</td><td class="num bold">18.97%</td><td class="num">11.82%</td></tr>
+              <tr><td>Livestream Kỳ 10</td><td class="num bold">16.70%</td><td class="num">10.01%</td></tr>
+              <tr><td>Livestream Kỳ 9</td><td class="num bold">16.02%</td><td class="num">9.21%</td></tr>
+              <tr><td>Thông báo Live</td><td class="num">12.96%</td><td class="num">7.71%</td></tr>
+              <tr><td>Livestream Kỳ 6</td><td class="num">11.88%</td><td class="num">9.31%</td></tr>
+              <tr><td>Livestream Kỳ 7</td><td class="num">10.33%</td><td class="num">8.74%</td></tr>
+              <tr><td>Single Photo</td><td class="num">0.10%</td><td class="num">0.07%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Insights mới quan trọng</div>
+      <ul>
+        <li><strong>Master Video</strong> = universal winner (CPE 26 cho cả 2 audience)</li>
+        <li><strong>Livestream content nhắm SENIOR mạnh</strong> — CPE rẻ 1.6-1.8x, ER cao 2x</li>
+        <li><strong>Vikki Trúng Vàng</strong>: ER 40% cho Senior (cực cao) nhưng CPM đắt 83K → dùng để nhắm lại nhóm Senior, không mở rộng đại trà</li>
+        <li>Nội dung Livestream hiệu quả hơn rõ rệt với nhóm <strong>Senior</strong> → ưu tiên Senior cho Livestream; Master Video hiệu quả đều cả 2 nhóm</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Pillar — TikTok">
+    <div class="slide-num">SECTION 08 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">5B</div>
+      <div><h1 class="slide-title">Hiệu quả theo Pillar — TikTok</h1><div class="slide-subtitle">Pillar nội dung nào nên đầu tư thêm</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pillar nội dung</th><th class="num">Tỷ trọng chi</th><th class="num">App Install</th><th class="num">CPI</th><th class="num">CPV (View 15s)</th><th>Đánh giá</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Sản phẩm – Dịch vụ / Khuyến mãi</td><td class="num">67% · 21.3M</td><td class="num bold">5,829</td><td class="num bold">2,276</td><td class="num">121đ</td><td><span class="badge best">✨ Hiệu quả nhất cho App</span></td></tr>
+          <tr><td class="bold">Sự kiện</td><td class="num">33% · 10.6M</td><td class="num">1,069</td><td class="num">2,434</td><td class="num">150đ</td><td><span class="badge good">Tốt cho nhận diện / tương tác</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:14px;margin:16px 0 8px;">CPI theo nhóm khán giả</h3>
+    <div class="table-wrap" style="max-height:none;">
+      <table>
+        <thead><tr><th>Pillar</th><th class="num">CPI — Senior</th><th class="num">CPI — Young</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Sản phẩm – Dịch vụ / Khuyến mãi</td><td class="num">2,297</td><td class="num bold">2,272</td></tr>
+          <tr><td class="bold">Sự kiện</td><td class="num">2,306</td><td class="num">2,526</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="note-label">📝 Khuyến nghị theo pillar</div>
+      <ul>
+        <li><strong>Đầu tư thêm vào pillar "Sản phẩm – Dịch vụ / Khuyến mãi":</strong> CPI rẻ hơn (2,276 so với 2,434) và chi phí mỗi view rẻ hơn (121đ so với 150đ) — đây là nhóm nội dung kéo người dùng app hiệu quả nhất.</li>
+        <li><strong>Pillar "Sự kiện"</strong> có tỷ lệ xem video tốt hơn → mạnh cho nhận diện &amp; tương tác; nên tối ưu thêm để cải thiện hiệu quả cài đặt.</li>
+        <li>Theo nhóm khán giả: Sản phẩm–Dịch vụ/Khuyến mãi hiệu quả đều ở cả Senior &amp; Young (CPI ~2,272–2,297); Sự kiện hiệu quả hơn ở <strong>Senior</strong> (2,306) so với Young (2,526).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-name="Root Cause + Actions">
+    <div class="slide-num">SECTION 09 / 9</div>
+    <div class="title-row">
+      <div class="title-badge">🎯</div>
+      <div><h1 class="slide-title">Kết luận &amp; Khuyến nghị</h1><div class="slide-subtitle">Tổng kết &amp; kế hoạch hành động</div></div>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:13px;margin-bottom:8px;">🔍 Nguyên nhân chính</h3>
+    <div class="rc-grid" style="margin-bottom:16px;">
+      <div class="rc-card"><div class="rc-title">1. Android Đăng ký/Install 0.81%</div><p>Người dùng bị nghẽn ở bước đăng ký / mở tài khoản (KYC/OTP) phía app</p></div>
+      <div class="rc-card"><div class="rc-title">2. Facebook App chưa chạy</div><p>Ngân sách App theo kế hoạch chưa được kích hoạt</p></div>
+      <div class="rc-card"><div class="rc-title">3. Meta dồn vào nhóm 25-34</div><p>Senior tương tác cao 2x, CPE rẻ 2x — nên cân nhắc lại phân bổ</p></div>
+      <div class="rc-card"><div class="rc-title">4. Master Video chưa tận dụng đủ</div><p>Chỉ 14.6% ngân sách dù CPE rẻ nhất (26) cho cả 2 nhóm</p></div>
+    </div>
+
+    <h3 style="color:var(--vikki-purple);font-size:13px;margin:14px 0 8px;">🎯 Khuyến nghị &amp; hành động tiếp theo</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
+      <div>
+        <span class="priority-label medium">🎯 Nên đẩy mạnh để tăng trưởng</span>
+        <ul style="font-size:11px;padding-left:18px;line-height:1.65;">
+          <li><strong>Mở rộng nhóm Senior:</strong> tương tác tốt hơn Young (CPE rẻ ~2x) và cài app hiệu quả ngang Young (CPI ≈2,300) — còn nhiều cơ hội để tăng lượng người dùng &amp; tương tác.</li>
+          <li><strong>Ưu tiên nội dung hiệu quả:</strong> Livestream + Master Video là nội dung tạo tương tác mạnh nhất trên Meta; trên TikTok, pillar <strong>Sản phẩm – Dịch vụ / Khuyến mãi</strong> cho CPI app tốt nhất → tập trung sản xuất thêm các nhóm nội dung này.</li>
+          <li><strong>Giữ vai trò từng kênh:</strong> Meta kéo nhận diện &amp; độ phủ (CPM rẻ hơn), TikTok mạnh về tương tác &amp; chuyển đổi.</li>
+        </ul>
+      </div>
+      <div>
+        <span class="priority-label high">🤝 Cần Vikki phối hợp / quyết định</span>
+        <ul style="font-size:11px;padding-left:18px;line-height:1.65;">
+          <li><strong>Kích hoạt ngân sách App:</strong> phần lớn ngân sách App theo kế hoạch chưa chạy → cần quyết định &amp; thời điểm mở từ Vikki.</li>
+          <li><strong>Bổ sung creative:</strong> cấp thêm asset cho pillar/format đang hiệu quả nếu cần từ phía thương hiệu.</li>
+        </ul>
+      </div>
+    </div>
+    <div style="background:#FAF5FC;border-left:4px solid var(--vikki-purple);padding:10px 16px;border-radius:0 10px 10px 0;font-size:11px;color:var(--text-mid);margin-bottom:16px;">
+      <strong style="color:var(--vikki-purple);">⚙️ PMAX tối ưu trong quá trình chạy:</strong> team tiếp tục tinh chỉnh phân bổ ngân sách &amp; creative giữa các nhóm theo hiệu suất thực tế — kết quả tổng hợp sẽ trình bày ở báo cáo kỳ sau.
+    </div>
+
+    <div class="tldr-grid">
+      <div class="tldr-card working">
+        <h3>🟢 Điểm đang tốt</h3>
+        <ul>
+          <li>Meta Engagement CPE 48 (rẻ 26x plan)</li>
+          <li>Master Video CPE 26 universal Senior+Young</li>
+          <li>TikTok sangolf CPI 2,187 Senior, VTR 41%</li>
+          <li>Android SENIOR = Young CPI (≈2,300)</li>
+          <li>Facebook Pagelike CPE 210 (rẻ 6x plan)</li>
+          <li>TikTok Pagelike CPV 655 (rẻ hơn plan, view 2s)</li>
+        </ul>
+      </div>
+      <div class="tldr-card broken">
+        <h3>🔴 Điểm chưa tốt</h3>
+        <ul>
+          <li>Facebook App 0 spend (150M plan)</li>
+          <li>TikTok iOS tracking lỗi</li>
+          <li>Android Đăng ký/Install 0.81%</li>
+          <li>Single Photo hiệu suất thấp (CPE/ER kém)</li>
+          <li>Tốc độ tiêu ngân sách chậm dần</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="big-move">
+      <div class="big-move-label">🎯 THE ONE BIG MOVE</div>
+      <div class="big-move-text">Mở Facebook App + mở rộng tệp Senior (đang hiệu quả ngang Young)<br>= dùng được phần ngân sách lớn đang chờ, đồng thời có thêm người dùng mới.</div>
+    </div>
+
+    <div style="text-align:center;color:var(--text-light);font-size:11px;margin-top:16px;">
+      Vikki — Trúng Ngựa Vàng Ký Mùa 3 · Dữ liệu cập nhật đến 26/05/2026 · Nguồn: Meta Ads Manager + TikTok Ads Manager
+    </div>
+  </section>
+
+</div>
+
+<nav class="nav-bar" id="navBar">
+  <button class="nav-arrow" onclick="navTo(-1)">←</button>
+  <span class="nav-counter" id="navCounter">1 / 9</span>
+  <button class="nav-arrow" onclick="navTo(1)">→</button>
+</nav>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = document.querySelectorAll('.slide');
+  const navBar = document.getElementById('navBar');
+  const navCounter = document.getElementById('navCounter');
+
+  slides.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-dot';
+    btn.textContent = s.dataset.name || `S${i}`;
+    btn.onclick = () => deck.scrollTo({ left: i * window.innerWidth, behavior: 'smooth' });
+    navBar.insertBefore(btn, navBar.children[navBar.children.length - 1]);
+  });
+
+  function updateActive() {
+    const idx = Math.round(deck.scrollLeft / window.innerWidth);
+    document.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
+    navCounter.textContent = `${idx + 1} / ${slides.length}`;
+  }
+  deck.addEventListener('scroll', updateActive);
+  updateActive();
+
+  function navTo(delta) {
+    const cur = Math.round(deck.scrollLeft / window.innerWidth);
+    const next = Math.max(0, Math.min(slides.length - 1, cur + delta));
+    deck.scrollTo({ left: next * window.innerWidth, behavior: 'smooth' });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') navTo(1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') navTo(-1);
+    if (e.key === 'Home') deck.scrollTo({ left: 0, behavior: 'smooth' });
+    if (e.key === 'End') deck.scrollTo({ left: (slides.length - 1) * window.innerWidth, behavior: 'smooth' });
+  });
+</script>
+
+</body>
+</html>
